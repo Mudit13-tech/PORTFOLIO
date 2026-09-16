@@ -1,0 +1,29 @@
+{
+  "name": "ics-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "sync": "tsx scripts/fetch-activity.ts",
+    "prebuild": "tsx scripts/fetch-activity.ts",
+    "build": "next build",
+    "postbuild": "node scripts/check-lattice.mjs",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lattice": "node scripts/check-lattice.mjs"
+  },
+  "dependencies": {
+    "next": "^16.3.5",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.13",
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "tailwindcss": "^4.1.13",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2"
+  }
+}
