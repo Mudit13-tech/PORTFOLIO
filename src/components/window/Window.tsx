@@ -6,7 +6,7 @@ import { useDragHandle, useResizeHandle } from '@/os/useDrag'
 import { useSystemApi } from '@/os/SystemProvider'
 import { APP_TITLE } from '@/os/routes'
 import type { SnapSide, WindowState } from '@/os/types'
-import { Glyph } from '@/components/ui'
+import { AppIcon, Glyph } from '@/components/ui'
 
 /**
  * One window.
@@ -62,9 +62,11 @@ export function Window({
       role="dialog"
       aria-modal="false"
       aria-labelledby={titleId}
-      className={`window anim-open absolute top-0 left-0 flex flex-col rounded-md border overflow-hidden ${
-        focused ? 'border-focus/60 shadow-[var(--shadow-focus)]' : 'border-subtle shadow-[var(--shadow-rest)]'
-      } bg-window`}
+      className={`window anim-open absolute top-0 left-0 flex flex-col rounded-xl border overflow-hidden bg-window ${
+        focused
+          ? 'border-strong shadow-[var(--shadow-focus)]'
+          : 'border-subtle shadow-[var(--shadow-rest)]'
+      }`}
       style={{
         transform: `translate3d(${win.rect.x}px, ${win.rect.y}px, 0)`,
         width: win.rect.w,
@@ -79,15 +81,15 @@ export function Window({
       <header
         onPointerDown={onDragStart}
         onDoubleClick={() => api.toggleMaximize(win.id)}
-        className={`flex items-center gap-2 px-3 shrink-0 border-b border-subtle bg-chrome select-none ${
+        className={`flex items-center gap-2 px-2.5 shrink-0 border-b border-subtle bg-chrome select-none ${
           win.maximized ? '' : 'cursor-grab'
-        } ${focused ? '' : 'opacity-60'}`}
-        style={{ height: CHROME_H }}
+        } ${focused ? '' : 'opacity-70'}`}
+        style={{ height: CHROME_H, boxShadow: 'inset 0 1px 0 var(--glass-line)' }}
       >
-        <Glyph name={win.id} size={13} className="text-tertiary shrink-0" />
-        <h2 id={titleId} className="mono text-[12px] text-secondary truncate">
-          {APP_TITLE[win.id]}
-          {win.payload ? `/${win.payload}` : ''}
+        <AppIcon id={win.id} size={17} />
+        <h2 id={titleId} className="mono text-[12px] truncate">
+          <span className={focused ? 'text-primary' : 'text-secondary'}>{APP_TITLE[win.id]}</span>
+          {win.payload ? <span className="text-tertiary">/{win.payload}</span> : null}
         </h2>
 
         <div className="ml-auto flex items-center gap-0.5 shrink-0">
@@ -144,8 +146,8 @@ function ChromeButton({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className={`grid place-items-center w-6 h-6 rounded-sm text-tertiary hover:bg-raised ${
-        danger ? 'hover:text-error' : 'hover:text-primary'
+      className={`grid place-items-center w-[22px] h-[22px] rounded-md border border-transparent text-tertiary hover:border-subtle hover:bg-raised ${
+        danger ? 'hover:text-error hover:border-error/50 hover:bg-error/12' : 'hover:text-primary'
       }`}
     >
       {children}

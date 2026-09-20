@@ -3,7 +3,7 @@ import { APP_ORDER, APP_PATH, APP_TITLE } from '@/os/routes'
 export default function NotFound() {
   return (
     <main id="content" className="wallpaper min-h-dvh grid place-items-center p-6">
-      <div className="mono text-[13px] max-w-md">
+      <div className="glass rounded-2xl p-6 mono text-[13px] max-w-md">
         <p className="text-error">SIGSEGV — no such application</p>
         <p className="text-tertiary mt-2">
           Nothing is mounted at that path. The system is still running; only this

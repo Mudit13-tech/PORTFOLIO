@@ -18,7 +18,8 @@ const DEFAULT_SIZE: Record<AppId, { w: number; h: number }> = {
   failures: { w: 720, h: 580 },
   skills: { w: 660, h: 540 },
   experiments: { w: 680, h: 520 },
-  monitor: { w: 560, h: 480 },
+  // Wide enough for the full 53-week heatmap without a horizontal scroll.
+  monitor: { w: 860, h: 640 },
   about: { w: 560, h: 520 },
   contact: { w: 520, h: 460 },
   terminal: { w: 680, h: 420 },
@@ -44,6 +45,7 @@ function initialState(): SystemState {
 export function createStore(): Store {
   let state = initialState()
   let viewport: Viewport = { w: 1440, h: 900 }
+  let hydrated = false
   const listeners = new Set<() => void>()
 
   const emit = () => {
@@ -236,6 +238,49 @@ export function createStore(): Store {
       set({ eggs: [...state.eggs, id] })
     },
 
+    /**
+     * Restore a returning visitor's desk. Called from an effect after mount,
+     * never during render.
+     *
+     * Reading localStorage while rendering is what broke this: the first
+     * client render disagreed with the server's, React threw the whole tree
+     * away and rebuilt it, and on a document React owns that takes <html>'s
+     * attributes with it — including the one the pre-paint script sets. The
+     * system would vanish and the plain document would appear in its place,
+     * for exactly the visitors who had been here before. A saved desk is worth
+     * one extra frame. It is not worth that.
+     */
+    hydrate() {
+      if (hydrated) return
+      hydrated = true
+
+      const saved = loadLayout()
+      if (!saved?.windows.length) return
+
+      // A deep link may already have opened something. It stays, and it stays
+      // on top.
+      const open = new Set(state.windows.map((w) => w.id))
+      const restored: WindowState[] = saved.windows
+        .filter((w) => !open.has(w.id))
+        .map((w, i) => ({
+          ...w,
+          rect: w.maximized ? maximizedRect(viewport) : clampToViewport(w.rect, viewport),
+          z: Z_BASE + i,
+          restore: null,
+          fromServer: false,
+        }))
+      if (!restored.length) return
+
+      const lifted = state.windows.map((w, i) => ({ ...w, z: Z_BASE + restored.length + i }))
+
+      set({
+        windows: [...restored, ...lifted],
+        focusOrder: [...saved.focusOrder.filter((id) => !open.has(id)), ...state.focusOrder],
+        nextZ: Z_BASE + restored.length + lifted.length,
+        visited: [...new Set([...state.visited, ...restored.map((w) => w.id)])],
+      })
+    },
+
     reset() {
       try {
         window.localStorage.clear()
@@ -243,25 +288,9 @@ export function createStore(): Store {
         /* private mode — nothing to clear, and nothing to report */
       }
       state = initialState()
+      hydrated = false
       emit()
     },
-  }
-
-  /** Restore a returning visitor's desk, if one was saved. */
-  const saved = loadLayout()
-  if (saved?.windows.length) {
-    state = {
-      ...state,
-      windows: saved.windows.map((w, i) => ({
-        ...w,
-        z: Z_BASE + i,
-        restore: null,
-        fromServer: false,
-      })),
-      focusOrder: saved.focusOrder,
-      nextZ: Z_BASE + saved.windows.length,
-      visited: saved.windows.map((w) => w.id),
-    }
   }
 
   return api

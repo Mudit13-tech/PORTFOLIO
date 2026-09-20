@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useRef, useSyncExternalStore } from 'react'
 import { BP_DESKTOP, BP_TABLET } from './constants'
+import { readFlag } from './persist'
 import { createStore, type Store } from './store'
 import type { ShellKind, SystemState } from './types'
 
@@ -15,6 +16,25 @@ export function SystemProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const sync = () => store.setViewport({ w: window.innerWidth, h: window.innerHeight })
     sync()
+    // The real viewport first, then the saved desk — so a restored window is
+    // clamped to this screen rather than to the 1440x900 the store assumes
+    // before it has been told otherwise.
+    store.hydrate()
+
+    // The pre-paint script sets data-theme on <html>. If React ever has to
+    // regenerate the document, that attribute goes with it, so it is
+    // re-asserted here from the same source of truth.
+    const root = document.documentElement
+    if (root.dataset.theme !== 'light' && root.dataset.theme !== 'dark') {
+      const saved = readFlag('theme')
+      root.dataset.theme =
+        saved === 'light' || saved === 'dark'
+          ? saved
+          : window.matchMedia('(prefers-color-scheme: light)').matches
+            ? 'light'
+            : 'dark'
+    }
+
     window.addEventListener('resize', sync)
     return () => window.removeEventListener('resize', sync)
   }, [store])

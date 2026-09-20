@@ -30,6 +30,13 @@ export type GlyphName =
   | 'maximize'
   | 'warn'
   | 'check'
+  | 'search'
+  | 'theme'
+  | 'pulse'
+  | 'grid'
+  | 'power'
+  | 'folder'
+  | 'caret'
 
 const PATHS: Record<GlyphName, React.ReactNode> = {
   projects: <rect x="2.75" y="2.75" width="10.5" height="10.5" rx="1" />,
@@ -92,6 +99,72 @@ const PATHS: Record<GlyphName, React.ReactNode> = {
     </>
   ),
   check: <path d="m3.5 8.5 3 3 6-7" />,
+  search: (
+    <>
+      <circle cx="7.25" cy="7.25" r="4.25" />
+      <path d="m10.5 10.5 3 3" />
+    </>
+  ),
+  /* Half-filled disc: the same mark in both themes, rotated by what it means. */
+  theme: (
+    <>
+      <circle cx="8" cy="8" r="5.25" />
+      <path d="M8 2.75v10.5" />
+      <path d="M8 4.5a3.5 3.5 0 0 1 0 7" fill="currentColor" stroke="none" />
+    </>
+  ),
+  pulse: <path d="M1.5 8h3l1.75-4 2.5 8L10.75 8h3.75" />,
+  grid: (
+    <>
+      <rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1" />
+      <rect x="9" y="2.5" width="4.5" height="4.5" rx="1" />
+      <rect x="2.5" y="9" width="4.5" height="4.5" rx="1" />
+      <rect x="9" y="9" width="4.5" height="4.5" rx="1" />
+    </>
+  ),
+  power: (
+    <>
+      <path d="M8 2.5v5" />
+      <path d="M12.1 4.6a5.5 5.5 0 1 1-8.2 0" />
+    </>
+  ),
+  folder: (
+    <>
+      <path d="M2.5 12.5v-8a1 1 0 0 1 1-1h3l1.5 1.75h4.5a1 1 0 0 1 1 1V12.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1Z" />
+    </>
+  ),
+  caret: <path d="m4 6.5 4 4 4-4" />,
+}
+
+/* ------------------------------------------------------------- app tiles
+ * Nine applications, nine hues from one family. The tile carries the colour;
+ * the glyph inside it carries the meaning. Never the other way round — an icon
+ * that can only be told apart by its colour is unusable to a colour-blind
+ * visitor and invisible in forced-colors mode.
+ */
+export function AppIcon({
+  id,
+  size = 40,
+  className = '',
+}: {
+  id: GlyphName
+  size?: number
+  className?: string
+}) {
+  return (
+    <span
+      className={`tile grid place-items-center shrink-0 ${className}`}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: Math.round(size * 0.29),
+        ['--tile' as string]: `var(--app-${id}, var(--surface-raised))`,
+      }}
+      aria-hidden="true"
+    >
+      <Glyph name={id} size={Math.round(size * 0.52)} className="text-white/92" />
+    </span>
+  )
 }
 
 export function Glyph({

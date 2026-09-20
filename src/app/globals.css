@@ -42,9 +42,43 @@
   --shadow-rest: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 12px rgb(0 0 0 / 0.22);
   --shadow-focus: 0 2px 6px rgb(0 0 0 / 0.36), 0 16px 40px rgb(0 0 0 / 0.34);
 
-  --chrome-h: 32px;
-  --topbar-h: 40px;
-  --dock-h: 44px;
+  --chrome-h: 34px;
+  --topbar-h: 30px;
+  --dock-h: 84px;
+
+  /* Translucent chrome. The menu bar, the dock, a widget and a window's title
+   * bar are all the same material: the desk, blurred, with a hairline of light
+   * along the top edge where it catches the wallpaper. */
+  --glass-bg: rgb(26 31 36 / 0.62);
+  --glass-line: rgb(255 255 255 / 0.10);
+  --glass-edge: rgb(0 0 0 / 0.55);
+  --shadow-glass: 0 1px 0 var(--glass-line) inset, 0 8px 28px rgb(0 0 0 / 0.42);
+
+  /* Heatmap ramps. Two single-hue sequential scales, stepped from this year's
+   * own quartiles and checked against the panel they sit on — not a flip of
+   * one another, because a light ramp inverted is not a dark ramp. */
+  --hm-0: #262c31;
+  --hm-seam: #1b1f23;
+  --hm-gh-1: #3c5c3c;
+  --hm-gh-2: #52794a;
+  --hm-gh-3: #6f9c58;
+  --hm-gh-4: #95c47e;
+  --hm-lc-1: #6a5230;
+  --hm-lc-2: #8c6d3a;
+  --hm-lc-3: #b38c45;
+  --hm-lc-4: #dcb264;
+
+  /* One hue per application. Muted, all from the same family, so nine icons
+   * read as one set of tools rather than nine stickers. */
+  --app-projects: #5f8f7a;
+  --app-failures: #a5594a;
+  --app-skills: #6f7bad;
+  --app-experiments: #b08a4a;
+  --app-monitor: #4f8296;
+  --app-about: #7d6f9c;
+  --app-contact: #5b87a8;
+  --app-terminal: #4a5860;
+  --app-bin: #5c6469;
 }
 
 :root[data-theme='light'] {
@@ -72,6 +106,32 @@
 
   --shadow-rest: 0 1px 2px rgb(0 0 0 / 0.12), 0 4px 12px rgb(0 0 0 / 0.08);
   --shadow-focus: 0 2px 6px rgb(0 0 0 / 0.16), 0 16px 40px rgb(0 0 0 / 0.14);
+
+  --glass-bg: rgb(247 245 240 / 0.72);
+  --glass-line: rgb(255 255 255 / 0.85);
+  --glass-edge: rgb(0 0 0 / 0.10);
+  --shadow-glass: 0 1px 0 var(--glass-line) inset, 0 8px 24px rgb(60 50 35 / 0.16);
+
+  --hm-0: #dcd8ce;
+  --hm-seam: #f4f2ed;
+  --hm-gh-1: #8fb475;
+  --hm-gh-2: #6d9a57;
+  --hm-gh-3: #4f7a3b;
+  --hm-gh-4: #2d5319;
+  --hm-lc-1: #c9a761;
+  --hm-lc-2: #ab883e;
+  --hm-lc-3: #876522;
+  --hm-lc-4: #5b4105;
+
+  --app-projects: #3f7360;
+  --app-failures: #8d4536;
+  --app-skills: #545f91;
+  --app-experiments: #8d6a2c;
+  --app-monitor: #3a6577;
+  --app-about: #61537f;
+  --app-contact: #416a8a;
+  --app-terminal: #3b474e;
+  --app-bin: #565e63;
 }
 
 /* ------------------------------------------------------- tailwind bridge
@@ -148,28 +208,40 @@ body {
   border-radius: 2px;
 }
 
-/* Monospace means "this is machine output". Using it for decoration destroys
- * that signal, so it is applied through this class and nowhere else. */
-.mono {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 13px;
-  line-height: 1.55;
-}
+/* These live in a cascade layer on purpose.
+ *
+ * Unlayered CSS beats every layered rule regardless of specificity, and
+ * Tailwind's utilities are layered — so an unlayered `.mono { font-size: 13px }`
+ * silently wins over `text-[12px]` on the same element, and every deliberate
+ * size in the interface collapses to one. Inside `@layer components` the
+ * declaration is a default that a utility may override, which is what a class
+ * like this is for.
+ *
+ * Monospace means "this is machine output". Using it for decoration destroys
+ * that signal, so it is applied through this class and nowhere else.
+ */
+@layer components {
+  .mono {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 13px;
+    line-height: 1.55;
+  }
 
-.micro {
-  font-size: 11px;
-  line-height: 1.3;
-  letter-spacing: 0.04em;
-}
+  .micro {
+    font-size: 11px;
+    line-height: 1.3;
+    letter-spacing: 0.04em;
+  }
 
-/* Field names, which is exactly what they are. */
-.field-label {
-  font-size: 11px;
-  line-height: 1.3;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-  font-family: var(--font-mono), ui-monospace, monospace;
+  /* Field names, which is exactly what they are. */
+  .field-label {
+    font-size: 11px;
+    line-height: 1.3;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono), ui-monospace, monospace;
+  }
 }
 
 .prose-col {
@@ -193,27 +265,163 @@ body {
 }
 
 /* ---------------------------------------------------------- wallpaper
- * A 24px dot grid at 4% over the base, plus one radial light source in the
- * upper left. Zero DOM nodes, nothing that competes with a window.
+ * The desk. Drawn entirely in gradients: zero DOM nodes, zero bytes over the
+ * wire, and it re-values itself for the light theme instead of shipping a
+ * second photograph.
+ *
+ * Four layers, front to back: a fine instrument grid, contour rings radiating
+ * from the lower-left light, a cool counter-light in the upper right, and the
+ * base gradient underneath. Nothing here animates and nothing competes with a
+ * window — a wallpaper that draws the eye is a wallpaper that loses the work.
  */
 .wallpaper {
   background-color: var(--surface-desk);
   background-image:
-    radial-gradient(
-      ellipse 80% 60% at 18% 0%,
-      rgb(255 255 255 / 0.045),
-      transparent 60%
+    radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.035) 1px, transparent 0),
+    repeating-radial-gradient(
+      circle at 6% 104%,
+      transparent 0 62px,
+      rgb(150 220 195 / 0.05) 62px 63px
     ),
-    radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.04) 1px, transparent 0);
+    radial-gradient(74% 64% at 4% 106%, rgb(82 184 152 / 0.4), transparent 70%),
+    radial-gradient(64% 54% at 98% -10%, rgb(116 128 214 / 0.3), transparent 66%),
+    radial-gradient(120% 100% at 50% 50%, transparent 40%, rgb(0 0 0 / 0.42)),
+    linear-gradient(158deg, #16202a 0%, #0c1013 54%, #101a1d 100%);
   background-size:
-    100% 100%,
-    24px 24px;
+    26px 26px,
+    auto,
+    auto,
+    auto,
+    auto,
+    auto;
 }
 
 :root[data-theme='light'] .wallpaper {
   background-image:
-    radial-gradient(ellipse 80% 60% at 18% 0%, rgb(0 0 0 / 0.03), transparent 60%),
-    radial-gradient(circle at 1px 1px, rgb(0 0 0 / 0.055) 1px, transparent 0);
+    radial-gradient(circle at 1px 1px, rgb(0 0 0 / 0.05) 1px, transparent 0),
+    repeating-radial-gradient(
+      circle at 6% 104%,
+      transparent 0 62px,
+      rgb(70 110 95 / 0.07) 62px 63px
+    ),
+    radial-gradient(74% 64% at 4% 106%, rgb(96 166 138 / 0.62), transparent 72%),
+    radial-gradient(64% 54% at 98% -10%, rgb(168 146 206 / 0.55), transparent 66%),
+    radial-gradient(120% 100% at 50% 50%, transparent 45%, rgb(90 74 50 / 0.12)),
+    linear-gradient(158deg, #f2efe7 0%, #e5e2da 54%, #ebe8df 100%);
+  background-size:
+    26px 26px,
+    auto,
+    auto,
+    auto,
+    auto,
+    auto;
+}
+
+/* ------------------------------------------------------------- glass
+ * One material for every piece of chrome: the desk behind it, blurred, with a
+ * hairline of light along the top edge. Where the browser cannot blur, the
+ * panel simply becomes opaque — legibility never depends on the effect.
+ */
+@layer components {
+  .glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-edge);
+    box-shadow: var(--shadow-glass);
+  }
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .glass {
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    backdrop-filter: blur(20px) saturate(1.5);
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--surface-chrome);
+  }
+}
+
+/* In forced-colors mode the blur, the shadow and the translucency are all
+ * discarded, so the panel gets a real border to keep its edge. */
+@media (forced-colors: active) {
+  .glass {
+    border-color: CanvasText;
+    background: Canvas;
+  }
+}
+
+/* --------------------------------------------------------- app tiles
+ * An application icon: a rounded tile in the app's own hue, lit from the top.
+ * The hue is set per instance as --tile.
+ */
+.tile {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--tile) 82%, white 18%),
+      color-mix(in oklab, var(--tile) 78%, black 22%)
+    );
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.22) inset,
+    0 0 0 1px rgb(0 0 0 / 0.28),
+    0 2px 6px rgb(0 0 0 / 0.3);
+}
+
+/* ---------------------------------------------------------------- dock */
+
+.dock-item {
+  transition:
+    transform 160ms cubic-bezier(0.2, 0.9, 0.3, 1),
+    filter 160ms linear;
+}
+
+.dock-item:hover:not(:disabled),
+.dock-item:focus-visible {
+  transform: translateY(-6px) scale(1.1);
+}
+
+/* The neighbours of the hovered icon lift a little too, so the row reads as
+ * one surface responding rather than a single button popping. */
+.dock-slot:hover + .dock-slot .dock-item,
+.dock-slot:has(+ .dock-slot:hover) .dock-item {
+  transform: translateY(-2px) scale(1.04);
+}
+
+.tooltip {
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition:
+    opacity 120ms linear,
+    transform 120ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  pointer-events: none;
+}
+
+/* The dot and the tooltip are siblings of the button, not adjacent to it, so
+ * this has to be the general sibling combinator. */
+.dock-slot:hover .tooltip,
+.dock-item:focus-visible ~ .tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ------------------------------------------------------------- menus */
+
+.menu-panel {
+  transform-origin: top left;
+  animation: menu-in 120ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* ------------------------------------------------------------- motion
@@ -336,21 +544,21 @@ body {
 }
 
 /* ------------------------------------------------- progressive enhancement
- * Two complete presentations of the same content, chosen before first paint.
+ * Two complete presentations of the same content, chosen by the parser.
  *
- * `data-os="on"` is set by the inline script in the root layout, so it exists
- * only when scripting does. With it, the operating system renders and the plain
- * document is removed. Without it, the OS chrome never paints and the visitor
- * gets the full portfolio as an ordinary readable page.
+ * The plain document is hidden by this rule and put back by a <style> inside
+ * the <noscript> in the root layout — which the browser applies only when
+ * scripting is off. So a visitor without JavaScript, and a crawler that does
+ * not execute it, get the whole portfolio as an ordinary readable page, and
+ * neither state flashes, because both decisions are made at parse time.
  *
- * Neither state flashes, because the decision is made before the first frame
- * rather than after hydration.
+ * This used to hang off a `data-os` attribute set by an inline script. It does
+ * not any more: React owns <html> here, and the one time it had to regenerate
+ * the document it took that attribute with it and the entire operating system
+ * disappeared. A presentation this important does not get to depend on an
+ * attribute anything else is allowed to remove.
  */
-:root[data-os='on'] .static-doc {
-  display: none;
-}
-
-:root:not([data-os='on']) .os-shell {
+.static-doc {
   display: none;
 }
 
@@ -386,4 +594,116 @@ body {
   border: 3px solid transparent;
   background-clip: content-box;
   border-radius: 999px;
+}
+
+/* ------------------------------------------------- desk motion & surfaces
+ * Everything below moves only transform and opacity, and every one of them is
+ * collapsed by the reduced-motion block above.
+ */
+
+@keyframes widget-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes dock-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-9px);
+  }
+  70% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes boot-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* The bar is the real wait: it runs for exactly as long as the boot screen
+ * does, so it is a progress indicator rather than a decoration pretending to
+ * be one. */
+.anim-progress {
+  transform-origin: left center;
+  animation: boot-progress var(--boot-ms, 2400ms) linear both;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.anim-widget {
+  animation: widget-in 340ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+.anim-bounce {
+  animation: dock-bounce 420ms cubic-bezier(0.3, 0.8, 0.4, 1);
+}
+
+.anim-pop {
+  animation: pop-in 140ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+/* A desktop icon is a hit target first and a picture second. */
+.desk-icon {
+  transition:
+    background-color 120ms linear,
+    transform 120ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.desk-icon:hover {
+  background-color: rgb(255 255 255 / 0.08);
+}
+
+:root[data-theme='light'] .desk-icon:hover {
+  background-color: rgb(0 0 0 / 0.06);
+}
+
+.desk-icon:active {
+  transform: scale(0.96);
+}
+
+/* The running indicator under a dock icon. */
+.running-dot {
+  background: var(--text-secondary);
+  opacity: 0.85;
+}
+
+/* Windows lose their drop shadow in forced colors, so they need a real edge. */
+@media (forced-colors: active) {
+  .window {
+    border: 1px solid CanvasText;
+  }
+}
+
+/* Desk labels sit directly on the wallpaper, so they carry their own shadow —
+ * light-on-dark in one theme, dark-on-light in the other. */
+.desk-label {
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
+}
+
+:root[data-theme='light'] .desk-label {
+  text-shadow: 0 1px 2px rgb(255 255 255 / 0.9);
 }

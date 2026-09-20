@@ -42,7 +42,7 @@ export interface SystemState {
   visited: AppId[]
   /** Dock entry to flash when a window is evicted. */
   evicted: AppId | null
-  overlay: 'shortcuts' | 'reveal' | null
+  overlay: 'shortcuts' | 'reveal' | 'launcher' | null
   devMode: boolean
   sessionStart: number
   revealShown: boolean
@@ -60,6 +60,8 @@ export interface SystemApi {
   snap(id: AppId, side: Exclude<SnapSide, null>): void
   cycle(): void
   closeFocused(): void
+  /** Apply the saved layout. Called after mount, never during render. */
+  hydrate(): void
   setBooted(v: boolean): void
   setOverlay(v: SystemState['overlay']): void
   toggleDevMode(): void

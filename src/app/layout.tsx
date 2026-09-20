@@ -45,14 +45,17 @@ export const viewport: Viewport = {
  * cautious visitor runs.
  */
 const PREFLIGHT = `(function(){var d=document.documentElement;
-// Marks that scripting is available, before first paint. Without it the CSS
-// hides the operating system and shows the plain document instead, so a
-// visitor with JavaScript disabled gets the whole portfolio as a readable
-// page rather than an empty shell.
-d.dataset.os='on';
 try{var s=localStorage,t=s.getItem('mudit-os.v1.theme');
 if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}
 d.dataset.theme=t}catch(e){d.dataset.theme='dark'}})()`
+
+/**
+ * The other half of the progressive enhancement, and the half that cannot
+ * fail: the stylesheet hides the plain document, and this puts it back when
+ * scripting is off. The browser applies it at parse time, no script runs, and
+ * nothing in the React tree can undo it.
+ */
+const NO_JS = `<style>.static-doc{display:block}.os-shell{display:none}</style>`
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const jsonLd = {
@@ -69,6 +72,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${sans.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: PREFLIGHT }} />
+        <noscript dangerouslySetInnerHTML={{ __html: NO_JS }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}

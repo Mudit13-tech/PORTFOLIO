@@ -69,6 +69,23 @@ export const APP_TITLE: Record<AppId, string> = {
   bin: 'RECYCLE_BIN',
 }
 
+/**
+ * Short names for the chrome — desk icons, the dock, the phone home screen.
+ * `APP_TITLE` is the system's formal name for an application and stays in the
+ * window's title bar and the menus; an 88px icon needs a word, not a path.
+ */
+export const APP_LABEL: Record<AppId, string> = {
+  projects: 'PROJECTS',
+  failures: 'FAILURES',
+  skills: 'SKILLS',
+  experiments: 'EXPERIMENTS',
+  monitor: 'SYSTEM',
+  about: 'ABOUT',
+  contact: 'CONTACT',
+  terminal: 'TERMINAL',
+  bin: 'BIN',
+}
+
 export const APP_SUBTITLE: Record<AppId, string> = {
   projects: 'applications',
   failures: 'crash reports',

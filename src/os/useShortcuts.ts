@@ -57,6 +57,12 @@ export function useShortcuts(enabled: boolean) {
       }
 
       switch (e.key) {
+        case 'k': {
+          e.preventDefault()
+          const { overlay } = api.getState()
+          api.setOverlay(overlay === 'launcher' ? null : 'launcher')
+          break
+        }
         case '`':
           e.preventDefault()
           api.cycle()

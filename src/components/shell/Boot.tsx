@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { buildVersion, meta } from '~/data'
 import { bootLines } from '@/lib/derived'
-import { BOOT_MAX, BOOT_STAGGER } from '@/os/constants'
+import { BOOT_MAX } from '@/os/constants'
 import { readFlag, writeFlag } from '@/os/persist'
 import { useSystem, useSystemApi } from '@/os/SystemProvider'
 
@@ -67,10 +67,14 @@ export function Boot() {
   if (booted || !ready) return null
 
   return (
-    <div className="fixed inset-0 z-[1000] grid place-items-center bg-desk p-6">
-      <div className="mono text-[13px] w-full max-w-md">
-        <p className="text-secondary">
-          {meta.systemName} · build {buildVersion}
+    <div className="wallpaper fixed inset-0 z-[1000] grid place-items-center p-6">
+      <div className="glass rounded-2xl p-6 w-full max-w-md mono text-[13px]">
+        <p className="flex items-center gap-2 text-secondary">
+          <span className="text-ok" aria-hidden="true">
+            ◈
+          </span>
+          {meta.systemName}
+          <span className="text-tertiary">· build {buildVersion}</span>
         </p>
 
         <ul className="mt-5 grid gap-0.5" aria-label="Boot sequence">
@@ -87,8 +91,17 @@ export function Boot() {
           ))}
         </ul>
 
+        {/* The wait, made honest: the bar runs for exactly as long as the boot
+            screen will, and Skip is focusable from the first frame. */}
+        <div className="h-[3px] rounded-full bg-raised overflow-hidden mt-5" aria-hidden="true">
+          <div
+            className="anim-progress h-full bg-ok"
+            style={{ ['--boot-ms' as string]: `${BOOT_MAX}ms` }}
+          />
+        </div>
+
         <p
-          className="anim-boot-line mt-5 text-warn"
+          className="anim-boot-line mt-4 text-warn"
           style={{ ['--i' as string]: bootLines.length }}
         >
           WARNING: some modules are unstable.
@@ -97,7 +110,7 @@ export function Boot() {
         </p>
 
         <div
-          className="anim-boot-line mt-6 grid gap-1.5"
+          className="anim-boot-line mt-5 grid gap-1.5"
           style={{ ['--i' as string]: bootLines.length + 1 }}
         >
           <button

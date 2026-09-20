@@ -5,11 +5,15 @@ import { buildVersion, meta, profile } from '~/data'
 import { NOTICE_DISMISS_MS, REVEAL_APPS, REVEAL_MS } from '@/os/constants'
 import { useSystem, useSystemApi } from '@/os/SystemProvider'
 import { Glyph } from '@/components/ui'
+import { DeskMenu } from './DeskMenu'
+import { Launcher } from './Launcher'
 
 /** Every overlay in the system, mounted once. */
 export function Overlays() {
   return (
     <>
+      <Launcher />
+      <DeskMenu />
       <ShortcutOverlay />
       <DevMode />
       <UpdateNotice />
@@ -21,6 +25,7 @@ export function Overlays() {
 
 const SHORTCUTS: Array<[string, string]> = [
   ['?', 'This overlay'],
+  ['Ctrl + K', 'Search everything'],
   ['Esc', 'Close focused window'],
   ['Ctrl + `', 'Cycle windows'],
   ['Ctrl + 1…8', 'Open app by index'],
@@ -40,13 +45,13 @@ function ShortcutOverlay() {
 
   return (
     <div
-      className="fixed inset-0 z-[900] grid place-items-center bg-desk/80 p-6"
+      className="fixed inset-0 z-[900] grid place-items-center bg-desk/70 p-6"
       onClick={() => api.setOverlay(null)}
     >
       <div
         role="dialog"
         aria-label="Keyboard shortcuts"
-        className="bg-window border border-subtle rounded-md p-5 w-full max-w-md shadow-[var(--shadow-focus)]"
+        className="glass anim-pop rounded-2xl p-5 w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="mono text-secondary border-b border-subtle pb-2 mb-3">KEYBOARD</h2>
@@ -114,7 +119,7 @@ function DevMode() {
   if (!on) return null
 
   return (
-    <div className="fixed bottom-14 right-3 z-[850] bg-window border border-subtle rounded-md p-3 mono text-[12px] shadow-[var(--shadow-rest)] w-52">
+    <div className="glass fixed bottom-24 right-3 z-[850] rounded-xl p-3 mono text-[12px] w-52">
       <div className="flex items-center justify-between mb-2">
         <span className="text-secondary">DEV MODE</span>
         <button type="button" onClick={() => api.toggleDevMode()} aria-label="Close dev mode">
@@ -175,7 +180,7 @@ function UpdateNotice() {
   if (!show) return null
 
   return (
-    <div className="fixed top-12 right-3 z-[860] anim-notice bg-window border border-subtle rounded-md px-3 py-2 flex items-center gap-3 shadow-[var(--shadow-rest)]">
+    <div className="glass fixed top-10 right-3 z-[860] anim-notice rounded-xl px-3 py-2 flex items-center gap-3">
       <span className="mono text-[12px] text-secondary">◈ SYSTEM UPDATE AVAILABLE</span>
       <button
         type="button"
@@ -197,7 +202,7 @@ function Reveal() {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-[950] grid place-items-center bg-desk p-6 text-center">
+    <div className="wallpaper fixed inset-0 z-[950] grid place-items-center p-6 text-center">
       <div className="grid gap-6">
         <p className="mono text-[13px] text-tertiary">You&apos;ve explored the system.</p>
         <p className="text-[32px] leading-[1.15] tracking-[-0.02em] text-primary">
@@ -270,7 +275,7 @@ function Konami() {
   if (!on) return null
 
   return (
-    <div className="fixed bottom-14 left-3 z-[870] mono text-[12px] bg-window border border-subtle rounded-sm px-2 py-1 text-warn">
+    <div className="glass fixed bottom-24 left-3 z-[870] mono text-[12px] rounded-lg px-2 py-1 text-warn">
       CRT MODE — Esc to exit
     </div>
   )

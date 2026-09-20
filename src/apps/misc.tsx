@@ -7,7 +7,9 @@ import {
   type Experiment,
 } from '~/data'
 import { counts, readingCeiling, readings, stability, system } from '@/lib/derived'
+import { activityStats } from '@/lib/activity'
 import { Chip, Empty, ExternalLink, Field, Glyph, Meter, Rule, Section } from '@/components/ui'
+import { Heatmap } from '@/components/system/Heatmap'
 import { RestoreAll } from '@/components/system/RestoreAll'
 import { CopyButton } from '@/components/system/CopyButton'
 
@@ -159,7 +161,33 @@ export function MonitorApp() {
 
       <Rule />
 
+      <section>
+        <header className="flex items-baseline justify-between gap-3 mb-3">
+          <h2 className="field-label">
+            Activity · {activityStats.from} → {activityStats.to}
+          </h2>
+          <span className="micro text-tertiary">
+            {activityStats.activeDays} of {activityStats.days} days
+          </span>
+        </header>
+
+        <Heatmap />
+
+        <p className="micro text-tertiary mt-3 term-col">
+          Upper-left triangle: GitHub contributions. Lower-right: LeetCode
+          submissions. The two are drawn side by side and never added together —
+          a commit count plus a problem count is a number that means nothing.
+          Each ramp steps from its own quartiles over this window, so the colour
+          reads as busy-for-this-person rather than busy-against-an-invented-ceiling.
+        </p>
+      </section>
+
+      <Rule />
+
       <dl className="grid gap-2">
+        <Field label="longest streak" hint={`ended ${activityStats.endedOn ?? 'n/a'}`}>
+          <span className="mono">{activityStats.longest} days</span>
+        </Field>
         <Field label="uptime" hint={`since the first commit, ${meta.since}`}>
           <span className="mono">{system.uptime}</span>
         </Field>
