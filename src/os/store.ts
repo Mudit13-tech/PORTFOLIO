@@ -18,8 +18,9 @@ const DEFAULT_SIZE: Record<AppId, { w: number; h: number }> = {
   failures: { w: 720, h: 580 },
   skills: { w: 660, h: 540 },
   experiments: { w: 680, h: 520 },
-  // Wide enough for the full 53-week heatmap without a horizontal scroll.
-  monitor: { w: 860, h: 640 },
+  // Wide enough for a full 53-week calendar without a horizontal scroll, and
+  // tall enough that both of them are on the first screen.
+  monitor: { w: 880, h: 720 },
   about: { w: 560, h: 520 },
   contact: { w: 520, h: 460 },
   terminal: { w: 680, h: 420 },

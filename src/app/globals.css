@@ -38,9 +38,16 @@
 
   --focus-ring: #8fbf7a;
 
-  /* Exactly two elevation levels. More makes the window stack read as mush. */
-  --shadow-rest: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 12px rgb(0 0 0 / 0.22);
-  --shadow-focus: 0 2px 6px rgb(0 0 0 / 0.36), 0 16px 40px rgb(0 0 0 / 0.34);
+  /* Exactly two elevation levels. More makes the window stack read as mush.
+   * Each is three shadows: a contact line, a mid falloff and a long ambient
+   * one, which is the difference between a card and something sitting on a
+   * desk with a light above it. */
+  --shadow-rest:
+    0 1px 2px rgb(0 0 0 / 0.34), 0 6px 16px -4px rgb(0 0 0 / 0.34),
+    0 18px 40px -16px rgb(0 0 0 / 0.42);
+  --shadow-focus:
+    0 2px 4px rgb(0 0 0 / 0.4), 0 14px 30px -8px rgb(0 0 0 / 0.5),
+    0 44px 80px -28px rgb(0 0 0 / 0.62);
 
   --chrome-h: 34px;
   --topbar-h: 30px;
@@ -49,10 +56,17 @@
   /* Translucent chrome. The menu bar, the dock, a widget and a window's title
    * bar are all the same material: the desk, blurred, with a hairline of light
    * along the top edge where it catches the wallpaper. */
-  --glass-bg: rgb(26 31 36 / 0.62);
-  --glass-line: rgb(255 255 255 / 0.10);
-  --glass-edge: rgb(0 0 0 / 0.55);
-  --shadow-glass: 0 1px 0 var(--glass-line) inset, 0 8px 28px rgb(0 0 0 / 0.42);
+  --glass-bg: rgb(22 27 32 / 0.58);
+  --glass-line: rgb(255 255 255 / 0.13);
+  --glass-edge: rgb(0 0 0 / 0.6);
+  --shadow-glass:
+    0 1px 0 var(--glass-line) inset, 0 -1px 0 rgb(0 0 0 / 0.35) inset,
+    0 2px 6px -2px rgb(0 0 0 / 0.4), 0 18px 44px -14px rgb(0 0 0 / 0.55);
+
+  /* The terminal is its own surface: darker than any window, because a
+   * terminal that matches the desktop chrome does not read as a terminal. */
+  --term-bg-top: #0d1216;
+  --term-bg-bottom: #080b0e;
 
   /* Heatmap ramps. Two single-hue sequential scales, stepped from this year's
    * own quartiles and checked against the panel they sit on — not a flip of
@@ -70,15 +84,15 @@
 
   /* One hue per application. Muted, all from the same family, so nine icons
    * read as one set of tools rather than nine stickers. */
-  --app-projects: #5f8f7a;
-  --app-failures: #a5594a;
-  --app-skills: #6f7bad;
-  --app-experiments: #b08a4a;
-  --app-monitor: #4f8296;
-  --app-about: #7d6f9c;
-  --app-contact: #5b87a8;
-  --app-terminal: #4a5860;
-  --app-bin: #5c6469;
+  --app-projects: #3f9e7c;
+  --app-failures: #c0503c;
+  --app-skills: #6670c9;
+  --app-experiments: #c48c2c;
+  --app-monitor: #3a8db0;
+  --app-about: #8a67c4;
+  --app-contact: #4790c9;
+  --app-terminal: #3a4750;
+  --app-bin: #616b71;
 }
 
 :root[data-theme='light'] {
@@ -104,13 +118,22 @@
 
   --focus-ring: #3f6b2a;
 
-  --shadow-rest: 0 1px 2px rgb(0 0 0 / 0.12), 0 4px 12px rgb(0 0 0 / 0.08);
-  --shadow-focus: 0 2px 6px rgb(0 0 0 / 0.16), 0 16px 40px rgb(0 0 0 / 0.14);
+  --shadow-rest:
+    0 1px 2px rgb(60 50 35 / 0.16), 0 6px 16px -4px rgb(60 50 35 / 0.14),
+    0 18px 40px -16px rgb(60 50 35 / 0.18);
+  --shadow-focus:
+    0 2px 4px rgb(60 50 35 / 0.2), 0 14px 30px -8px rgb(60 50 35 / 0.22),
+    0 44px 80px -28px rgb(60 50 35 / 0.28);
 
-  --glass-bg: rgb(247 245 240 / 0.72);
-  --glass-line: rgb(255 255 255 / 0.85);
-  --glass-edge: rgb(0 0 0 / 0.10);
-  --shadow-glass: 0 1px 0 var(--glass-line) inset, 0 8px 24px rgb(60 50 35 / 0.16);
+  --glass-bg: rgb(249 247 243 / 0.7);
+  --glass-line: rgb(255 255 255 / 0.9);
+  --glass-edge: rgb(60 50 35 / 0.14);
+  --shadow-glass:
+    0 1px 0 var(--glass-line) inset, 0 -1px 0 rgb(60 50 35 / 0.06) inset,
+    0 2px 6px -2px rgb(60 50 35 / 0.12), 0 18px 44px -14px rgb(60 50 35 / 0.22);
+
+  --term-bg-top: #f8f6f1;
+  --term-bg-bottom: #efece4;
 
   --hm-0: #dcd8ce;
   --hm-seam: #f4f2ed;
@@ -123,15 +146,15 @@
   --hm-lc-3: #876522;
   --hm-lc-4: #5b4105;
 
-  --app-projects: #3f7360;
-  --app-failures: #8d4536;
-  --app-skills: #545f91;
-  --app-experiments: #8d6a2c;
-  --app-monitor: #3a6577;
-  --app-about: #61537f;
-  --app-contact: #416a8a;
-  --app-terminal: #3b474e;
-  --app-bin: #565e63;
+  --app-projects: #2f8265;
+  --app-failures: #a5432f;
+  --app-skills: #5159ad;
+  --app-experiments: #a5761f;
+  --app-monitor: #2d7492;
+  --app-about: #7152ab;
+  --app-contact: #3475ab;
+  --app-terminal: #36434c;
+  --app-bin: #545d63;
 }
 
 /* ------------------------------------------------------- tailwind bridge
@@ -269,26 +292,34 @@ body {
  * wire, and it re-values itself for the light theme instead of shipping a
  * second photograph.
  *
- * Four layers, front to back: a fine instrument grid, contour rings radiating
- * from the lower-left light, a cool counter-light in the upper right, and the
- * base gradient underneath. Nothing here animates and nothing competes with a
- * window — a wallpaper that draws the eye is a wallpaper that loses the work.
+ * Five layers, front to back: a grain tile, a fine instrument grid, contour
+ * rings radiating from the lower-left light, a cool counter-light in the upper
+ * right, and the base gradient underneath. The grain is the cheapest way to
+ * stop a large flat gradient from banding on an 8-bit panel, and it is what
+ * keeps the desk from looking like a screenshot of a colour picker.
+ *
+ * Nothing here animates and nothing competes with a window — a wallpaper that
+ * draws the eye is a wallpaper that loses the work.
  */
 .wallpaper {
   background-color: var(--surface-desk);
   background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E"),
     radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.035) 1px, transparent 0),
     repeating-radial-gradient(
       circle at 6% 104%,
       transparent 0 62px,
       rgb(150 220 195 / 0.05) 62px 63px
     ),
-    radial-gradient(74% 64% at 4% 106%, rgb(82 184 152 / 0.4), transparent 70%),
-    radial-gradient(64% 54% at 98% -10%, rgb(116 128 214 / 0.3), transparent 66%),
-    radial-gradient(120% 100% at 50% 50%, transparent 40%, rgb(0 0 0 / 0.42)),
-    linear-gradient(158deg, #16202a 0%, #0c1013 54%, #101a1d 100%);
+    radial-gradient(78% 68% at 2% 108%, rgb(74 198 160 / 0.42), transparent 68%),
+    radial-gradient(52% 44% at 22% 88%, rgb(96 214 186 / 0.2), transparent 70%),
+    radial-gradient(70% 58% at 100% -12%, rgb(126 132 232 / 0.36), transparent 64%),
+    radial-gradient(110% 92% at 50% 46%, transparent 32%, rgb(0 0 0 / 0.55)),
+    linear-gradient(158deg, #1a2734 0%, #0b0f13 56%, #12211f 100%);
   background-size:
+    180px 180px,
     26px 26px,
+    auto,
     auto,
     auto,
     auto,
@@ -298,18 +329,22 @@ body {
 
 :root[data-theme='light'] .wallpaper {
   background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E"),
     radial-gradient(circle at 1px 1px, rgb(0 0 0 / 0.05) 1px, transparent 0),
     repeating-radial-gradient(
       circle at 6% 104%,
       transparent 0 62px,
       rgb(70 110 95 / 0.07) 62px 63px
     ),
-    radial-gradient(74% 64% at 4% 106%, rgb(96 166 138 / 0.62), transparent 72%),
-    radial-gradient(64% 54% at 98% -10%, rgb(168 146 206 / 0.55), transparent 66%),
-    radial-gradient(120% 100% at 50% 50%, transparent 45%, rgb(90 74 50 / 0.12)),
-    linear-gradient(158deg, #f2efe7 0%, #e5e2da 54%, #ebe8df 100%);
+    radial-gradient(78% 68% at 2% 108%, rgb(86 168 136 / 0.7), transparent 70%),
+    radial-gradient(52% 44% at 22% 88%, rgb(120 196 170 / 0.3), transparent 72%),
+    radial-gradient(70% 58% at 100% -12%, rgb(158 138 208 / 0.62), transparent 64%),
+    radial-gradient(110% 92% at 50% 46%, transparent 38%, rgb(74 58 36 / 0.16)),
+    linear-gradient(158deg, #f4f1e9 0%, #e4e1d8 56%, #e9e7de 100%);
   background-size:
+    180px 180px,
     26px 26px,
+    auto,
     auto,
     auto,
     auto,
@@ -353,27 +388,87 @@ body {
 }
 
 /* --------------------------------------------------------- app tiles
- * An application icon: a rounded tile in the app's own hue, lit from the top.
- * The hue is set per instance as --tile.
+ * An application icon is an object, not a swatch.
+ *
+ * Four things do that work: a vertical gradient so the surface has a top and a
+ * bottom, a specular highlight thrown from a light off the upper left, an
+ * inner bevel (one lit pixel at the top, one shaded at the bottom), and a
+ * contact shadow plus a long ambient one so it sits above the desk rather than
+ * being printed on it. The hue is the only thing that changes per app.
  */
-.tile {
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--tile) 82%, white 18%),
-      color-mix(in oklab, var(--tile) 78%, black 22%)
+@layer components {
+  .tile {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(
+      176deg,
+      color-mix(in oklab, var(--tile) 74%, white 26%) 0%,
+      var(--tile) 46%,
+      color-mix(in oklab, var(--tile) 72%, black 28%) 100%
     );
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.22) inset,
-    0 0 0 1px rgb(0 0 0 / 0.28),
-    0 2px 6px rgb(0 0 0 / 0.3);
+    box-shadow:
+      0 0 0 0.5px rgb(0 0 0 / 0.55),
+      inset 0 1px 0 rgb(255 255 255 / 0.32),
+      inset 0 -1px 0 rgb(0 0 0 / 0.3),
+      inset 0 -12px 18px -12px rgb(0 0 0 / 0.5),
+      0 1px 2px rgb(0 0 0 / 0.4),
+      0 6px 14px -6px rgb(0 0 0 / 0.48);
+  }
+}
+
+/* The specular. A pseudo-element rather than another gradient stop, because it
+ * has to be elliptical and off-centre, and a linear gradient cannot be. */
+.tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(84% 60% at 26% -10%, rgb(255 255 255 / 0.4), transparent 64%);
+  pointer-events: none;
+}
+
+/* A hairline of the app's own hue, lit — the rim light that stops a dark tile
+ * from dissolving into a dark wallpaper. */
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.14);
+  pointer-events: none;
+}
+
+.tile > svg {
+  position: relative;
+  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.45));
+}
+
+/* Progressive enhancement: a squircle is a rounder-cornered shape than a
+ * border-radius can describe, and where it is supported the tiles read as
+ * machined rather than clipped. */
+@supports (corner-shape: squircle) {
+  .tile {
+    corner-shape: squircle;
+  }
+}
+
+@media (forced-colors: active) {
+  .tile {
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+
+  .tile::before,
+  .tile::after {
+    content: none;
+  }
 }
 
 /* ---------------------------------------------------------------- dock */
 
 .dock-item {
   transition:
-    transform 160ms cubic-bezier(0.2, 0.9, 0.3, 1),
+    transform 160ms cubic-bezier(0.16, 1, 0.3, 1),
     filter 160ms linear;
 }
 
@@ -394,7 +489,7 @@ body {
   transform: translate(-50%, 4px);
   transition:
     opacity 120ms linear,
-    transform 120ms cubic-bezier(0.2, 0.9, 0.3, 1);
+    transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
 }
 
@@ -410,7 +505,7 @@ body {
 
 .menu-panel {
   transform-origin: top left;
-  animation: menu-in 120ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  animation: menu-in 120ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes menu-in {
@@ -431,7 +526,7 @@ body {
 @keyframes window-open {
   from {
     opacity: 0;
-    transform: translate3d(var(--wx), calc(var(--wy) + 8px), 0) scale(0.96);
+    transform: translate3d(var(--wx), calc(var(--wy) + 14px), 0) scale(0.94);
   }
   to {
     opacity: 1;
@@ -482,7 +577,7 @@ body {
 }
 
 .anim-open {
-  animation: window-open 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  animation: window-open 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .anim-shake {
@@ -490,11 +585,11 @@ body {
 }
 
 .anim-sheet {
-  animation: sheet-up 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  animation: sheet-up 320ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .anim-notice {
-  animation: notice-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  animation: notice-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .anim-boot-line {
@@ -560,6 +655,17 @@ body {
  */
 .static-doc {
   display: none;
+}
+
+/* The title bar is a plane of its own: lit along the top edge, falling off
+ * toward the content, so a window has a lid rather than a border. */
+.window-chrome {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--surface-chrome) 88%, white 12%),
+    var(--surface-chrome)
+  );
+  box-shadow: inset 0 1px 0 var(--glass-line);
 }
 
 /* Windows are positioned entirely by transform, and contained so a repaint in
@@ -654,23 +760,23 @@ body {
 }
 
 .anim-widget {
-  animation: widget-in 340ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  animation: widget-in 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: calc(var(--i, 0) * 70ms);
 }
 
 .anim-bounce {
-  animation: dock-bounce 420ms cubic-bezier(0.3, 0.8, 0.4, 1);
+  animation: dock-bounce 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .anim-pop {
-  animation: pop-in 140ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  animation: pop-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* A desktop icon is a hit target first and a picture second. */
 .desk-icon {
   transition:
     background-color 120ms linear,
-    transform 120ms cubic-bezier(0.2, 0.9, 0.3, 1);
+    transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .desk-icon:hover {
@@ -706,4 +812,64 @@ body {
 
 :root[data-theme='light'] .desk-label {
   text-shadow: 0 1px 2px rgb(255 255 255 / 0.9);
+}
+
+/* ---------------------------------------------------------- terminal
+ * Its own surface, darker than any window in the system. A terminal that
+ * matches the desktop chrome does not read as a terminal.
+ */
+.terminal {
+  background:
+    radial-gradient(130% 70% at 50% -18%, rgb(255 255 255 / 0.055), transparent 62%),
+    linear-gradient(180deg, var(--term-bg-top), var(--term-bg-bottom));
+}
+
+:root[data-theme='light'] .terminal {
+  background:
+    radial-gradient(130% 70% at 50% -18%, rgb(255 255 255 / 0.9), transparent 62%),
+    linear-gradient(180deg, var(--term-bg-top), var(--term-bg-bottom));
+}
+
+/* The prompt rail sits on its own plane, so the line you type on is never
+ * mistaken for the last line of output. */
+.term-rail {
+  background: rgb(255 255 255 / 0.035);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07);
+}
+
+:root[data-theme='light'] .term-rail {
+  background: rgb(0 0 0 / 0.03);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
+
+/* A block caret, drawn rather than borrowed: the native one is a hairline, and
+ * a hairline is not what a terminal cursor looks like. The font is monospace,
+ * so the column is exactly `ch` units from the start of the field. */
+.term-caret {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  width: 0.62ch;
+  height: 1.05em;
+  background: var(--signal-ok);
+  pointer-events: none;
+  animation: caret 1.1s steps(1, end) infinite;
+}
+
+@keyframes caret {
+  0%,
+  55% {
+    opacity: 0.85;
+  }
+  56%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .term-caret {
+    animation: none;
+    opacity: 0.85;
+  }
 }

@@ -81,12 +81,12 @@ export function Window({
       <header
         onPointerDown={onDragStart}
         onDoubleClick={() => api.toggleMaximize(win.id)}
-        className={`flex items-center gap-2 px-2.5 shrink-0 border-b border-subtle bg-chrome select-none ${
+        className={`window-chrome flex items-center gap-2 px-2.5 shrink-0 border-b border-subtle select-none ${
           win.maximized ? '' : 'cursor-grab'
         } ${focused ? '' : 'opacity-70'}`}
-        style={{ height: CHROME_H, boxShadow: 'inset 0 1px 0 var(--glass-line)' }}
+        style={{ height: CHROME_H }}
       >
-        <AppIcon id={win.id} size={17} />
+        <AppIcon id={win.id} size={18} />
         <h2 id={titleId} className="mono text-[12px] truncate">
           <span className={focused ? 'text-primary' : 'text-secondary'}>{APP_TITLE[win.id]}</span>
           {win.payload ? <span className="text-tertiary">/{win.payload}</span> : null}

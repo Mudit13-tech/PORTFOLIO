@@ -32,7 +32,7 @@ export function Dock() {
     >
       <nav
         aria-label="Dock"
-        className="glass pointer-events-auto flex items-end gap-0.5 px-2 py-1.5 rounded-[18px] max-w-[calc(100vw-1.5rem)] overflow-x-auto"
+        className="glass pointer-events-auto flex items-end gap-1 px-2.5 py-2 rounded-[22px] max-w-[calc(100vw-1.5rem)] overflow-x-auto"
       >
         {apps.map((id) => (
           <DockItem
@@ -106,7 +106,7 @@ function DockItem({
           shaking ? 'anim-shake' : ''
         }`}
       >
-        <AppIcon id={id} size={40} className={minimized ? 'opacity-55' : ''} />
+        <AppIcon id={id} size={44} className={minimized ? 'opacity-55' : ''} />
       </button>
 
       <span

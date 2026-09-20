@@ -7,9 +7,9 @@ import {
   type Experiment,
 } from '~/data'
 import { counts, readingCeiling, readings, stability, system } from '@/lib/derived'
-import { activityStats } from '@/lib/activity'
+import { activityStats, channelList } from '@/lib/activity'
 import { Chip, Empty, ExternalLink, Field, Glyph, Meter, Rule, Section } from '@/components/ui'
-import { Heatmap } from '@/components/system/Heatmap'
+import { ActivityTable, Heatmap } from '@/components/system/Heatmap'
 import { RestoreAll } from '@/components/system/RestoreAll'
 import { CopyButton } from '@/components/system/CopyButton'
 
@@ -127,6 +127,49 @@ export function MonitorApp() {
         <span className="micro text-ok">live</span>
       </header>
 
+      <section>
+        <header className="flex items-baseline justify-between gap-3 mb-4">
+          <h2 className="field-label">
+            Activity · {activityStats.from} → {activityStats.to}
+          </h2>
+          <span className="micro text-tertiary">
+            {activityStats.activeDays} of {activityStats.days} days
+          </span>
+        </header>
+
+        <div className="grid gap-6">
+          {channelList.map((c) => (
+            <article key={c.id}>
+              <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-2.5">
+                <h3 className="mono text-[13px] text-primary">{c.label}</h3>
+                <span className="mono text-[13px] tabular-nums" style={{ color: c.ramp[4] }}>
+                  {c.total}
+                </span>
+                <span className="micro text-tertiary">{c.unit}</span>
+                <span className="ml-auto micro text-tertiary">
+                  {c.activeDays} active days · longest run {c.longest}
+                </span>
+              </header>
+
+              <Heatmap channel={c.id} />
+
+              <p className="micro text-tertiary mt-2">{c.source}</p>
+            </article>
+          ))}
+        </div>
+
+        <ActivityTable />
+
+        <p className="micro text-tertiary mt-3 term-col">
+          One calendar per source, never one grid for both. The two are measured
+          in different units, so adding them produces a number that means
+          nothing — and each ramp steps from its own channel&apos;s quartiles,
+          which is why the steps are printed beside it.
+        </p>
+      </section>
+
+      <Rule />
+
       <ul className="grid gap-3">
         {readings.map((r) => {
           const row = (
@@ -161,26 +204,6 @@ export function MonitorApp() {
 
       <Rule />
 
-      <section>
-        <header className="flex items-baseline justify-between gap-3 mb-3">
-          <h2 className="field-label">
-            Activity · {activityStats.from} → {activityStats.to}
-          </h2>
-          <span className="micro text-tertiary">
-            {activityStats.activeDays} of {activityStats.days} days
-          </span>
-        </header>
-
-        <Heatmap />
-
-        <p className="micro text-tertiary mt-3 term-col">
-          Upper-left triangle: GitHub contributions. Lower-right: LeetCode
-          submissions. The two are drawn side by side and never added together —
-          a commit count plus a problem count is a number that means nothing.
-          Each ramp steps from its own quartiles over this window, so the colour
-          reads as busy-for-this-person rather than busy-against-an-invented-ceiling.
-        </p>
-      </section>
 
       <Rule />
 

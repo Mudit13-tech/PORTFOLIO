@@ -1,7 +1,7 @@
 'use client'
 
 import { profile } from '~/data'
-import { activityStats } from '@/lib/activity'
+import { activityStats, channelList } from '@/lib/activity'
 import { countFor } from '@/lib/derived'
 import { TOP_BAR_H } from '@/os/constants'
 import { APP_LABEL, APP_ORDER, APP_PATH, APP_TITLE } from '@/os/routes'
@@ -37,9 +37,9 @@ export function MobileShell() {
             <li key={id} className="flex justify-center">
               <a
                 href={APP_PATH[id]}
-                className="desk-icon flex flex-col items-center gap-1.5 w-[74px] min-h-[44px] pt-1 pb-1.5 rounded-xl"
+                className="desk-icon flex flex-col items-center gap-1.5 w-[78px] min-h-[44px] pt-1 pb-1.5 rounded-xl"
               >
-                <AppIcon id={id} size={48} />
+                <AppIcon id={id} size={54} />
                 <span className="desk-label mono text-[10px] leading-[1.15] text-center text-primary break-words">
                   {APP_LABEL[id]}
                 </span>
@@ -49,11 +49,24 @@ export function MobileShell() {
         </ul>
 
         <section className="glass mx-4 mt-6 rounded-2xl p-3.5">
-          <header className="flex items-baseline justify-between mb-2">
+          <header className="flex items-baseline justify-between mb-3">
             <h2 className="field-label">Activity</h2>
             <span className="micro text-tertiary">{activityStats.activeDays} active days</span>
           </header>
-          <Heatmap weeks={26} cell={11} gap={3} full={false} />
+          <div className="grid gap-4">
+            {channelList.map((c) => (
+              <div key={c.id}>
+                <div className="flex items-baseline gap-2 mb-1.5">
+                  <span className="text-[18px] leading-none tabular-nums" style={{ color: c.ramp[4] }}>
+                    {c.total}
+                  </span>
+                  <span className="micro text-tertiary">{c.unit}</span>
+                  <span className="ml-auto mono text-[11px] text-secondary">{c.label}</span>
+                </div>
+                <Heatmap channel={c.id} weeks={22} cell={11} gap={3} full={false} />
+              </div>
+            ))}
+          </div>
         </section>
 
         <p className="mono text-[12px] text-tertiary text-center px-6 mt-5 desk-label">

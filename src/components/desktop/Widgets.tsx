@@ -1,7 +1,7 @@
 'use client'
 
 import { profile } from '~/data'
-import { activityStats, longDate } from '@/lib/activity'
+import { activityStats, channelList, longDate } from '@/lib/activity'
 import { counts, stability, system } from '@/lib/derived'
 import { DOCK_H, TOP_BAR_H } from '@/os/constants'
 import { APP_PATH } from '@/os/routes'
@@ -65,17 +65,25 @@ function Panel({
  */
 function ActivityWidget() {
   return (
-    <Panel title="Activity" hint={`${activityStats.activeDays} active days`} index={0}>
-      <div className="flex items-baseline gap-4 mb-2.5">
-        <Stat value={activityStats.commits} label="contributions" tone="var(--hm-gh-4)" />
-        <Stat value={activityStats.solved} label="solved" tone="var(--hm-lc-4)" />
+    <Panel title="Activity" hint={`26 weeks to ${activityStats.to}`} index={0}>
+      <div className="grid gap-3.5">
+        {channelList.map((c) => (
+          <div key={c.id}>
+            <div className="flex items-baseline gap-2 mb-1.5">
+              <span className="text-[19px] leading-none tabular-nums" style={{ color: c.ramp[4] }}>
+                {c.total}
+              </span>
+              <span className="micro text-tertiary">{c.unit}</span>
+              <span className="ml-auto mono text-[11px] text-secondary">{c.label}</span>
+            </div>
+            <Heatmap channel={c.id} weeks={26} cell={9} gap={2} full={false} />
+          </div>
+        ))}
       </div>
 
-      <Heatmap weeks={26} cell={9} gap={2} full={false} />
-
-      <footer className="flex items-center justify-between gap-2 mt-2.5 pt-2.5 border-t border-subtle/60">
+      <footer className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-subtle/60">
         <span className="micro text-tertiary">
-          longest streak {activityStats.longest} days
+          {activityStats.activeDays} active days
         </span>
         <a
           href={APP_PATH.monitor}
@@ -86,17 +94,6 @@ function ActivityWidget() {
         </a>
       </footer>
     </Panel>
-  )
-}
-
-function Stat({ value, label, tone }: { value: number; label: string; tone: string }) {
-  return (
-    <span className="flex items-baseline gap-1.5">
-      <span className="text-[22px] leading-none tabular-nums" style={{ color: tone }}>
-        {value}
-      </span>
-      <span className="micro text-tertiary">{label}</span>
-    </span>
   )
 }
 

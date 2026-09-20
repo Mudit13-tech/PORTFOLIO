@@ -1,14 +1,41 @@
 import { activity, type ActivityDay } from '~/data'
 
 /**
- * The heatmap's model. Pure data — no React, no DOM — so the grid the
- * component draws is the grid you can print and check.
+ * The heatmap's model. Pure data — no React, no DOM — so the grids the
+ * components draw are grids you can print and check.
  *
- * Two channels share one cell: GitHub contributions in the upper-left
- * triangle, LeetCode submissions in the lower-right. They are never summed.
- * Adding a commit count to a problem count produces a number that means
- * nothing, and a chart built on a meaningless number is decoration.
+ * Two channels, two calendars. GitHub contributions and LeetCode submissions
+ * are never drawn in the same cell and never added together: a commit count
+ * plus a problem count is a number that means nothing, and one grid claiming to
+ * show both makes a quiet week in one look like a busy week in the other.
  */
+
+/* --------------------------------------------------------------- dates
+ * Written out rather than formatted by Intl.
+ *
+ * `toLocaleString` resolves against whatever ICU data the runtime shipped
+ * with, and Node's and the browser's do not always agree — CLDR moved en-US
+ * "Sep" to "Sept" at one point. A month label that renders one way on the
+ * server and another in the browser is a hydration mismatch, and in this
+ * system a hydration mismatch costs the entire desktop.
+ */
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+const MONTHS_LONG = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+]
+
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+/** "11 September 2026". */
+export function longDate(iso: string): string {
+  return `${Number(iso.slice(8, 10))} ${MONTHS_LONG[Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}`
+}
+
+export function weekdayName(dow: number): string {
+  return WEEKDAYS[dow]
+}
 
 export const DOW = 7
 export const WEEKS = Math.ceil(activity.days.length / DOW)
@@ -16,10 +43,13 @@ export const WEEKS = Math.ceil(activity.days.length / DOW)
 /** 0 = nothing happened. 1-4 index the ramp. */
 export type Level = 0 | 1 | 2 | 3 | 4
 
+export type ChannelId = 'commits' | 'solved'
+
 /**
- * Cut points for the ramp, taken from this year's own distribution rather than
- * from an invented ceiling. Quartiles over the days that had any activity, so
- * one twenty-commit day cannot flatten every ordinary one to the palest step.
+ * Cut points for a ramp, taken from that channel's own distribution rather
+ * than from an invented ceiling. Quartiles over the days that had any
+ * activity, so one twenty-commit day cannot flatten every ordinary one to the
+ * palest step.
  */
 function quartiles(values: number[]): [number, number, number] {
   const active = values.filter((v) => v > 0).sort((a, b) => a - b)
@@ -30,11 +60,6 @@ function quartiles(values: number[]): [number, number, number] {
   const b = Math.max(a + 1, at(0.5))
   const c = Math.max(b + 1, at(0.75))
   return [a, b, c]
-}
-
-const CUTS = {
-  commits: quartiles(activity.days.map((d) => d.commits)),
-  solved: quartiles(activity.days.map((d) => d.solved)),
 }
 
 function level(n: number, cuts: [number, number, number]): Level {
@@ -51,43 +76,17 @@ export interface Cell {
   week: number
   /** Row, 0 = Sunday. */
   dow: number
-  gh: Level
-  lc: Level
+  /** This channel's count for the day. */
+  count: number
+  level: Level
 }
 
-export const cells: Cell[] = activity.days.map((day, i) => ({
-  day,
-  week: Math.floor(i / DOW),
-  dow: i % DOW,
-  gh: level(day.commits, CUTS.commits),
-  lc: level(day.solved, CUTS.solved),
-}))
-
-/** Month ticks: the first column of each month, skipping the crowded last two. */
-export const monthTicks = (() => {
-  const out: Array<{ label: string; week: number }> = []
-  let last = ''
-  for (let w = 0; w < WEEKS; w++) {
-    const c = cells[w * DOW]
-    if (!c) continue
-    const label = new Date(`${c.day.date}T00:00:00Z`).toLocaleString('en-US', {
-      month: 'short',
-      timeZone: 'UTC',
-    })
-    if (label !== last && w < WEEKS - 2) {
-      out.push({ label, week: w })
-      last = label
-    }
-  }
-  return out
-})()
-
-function streaks(days: ActivityDay[]) {
+function streaks(has: (d: ActivityDay) => boolean) {
   let longest = 0
   let current = 0
   let endedOn: string | null = null
-  for (const d of days) {
-    if (d.commits > 0 || d.solved > 0) {
+  for (const d of activity.days) {
+    if (has(d)) {
       current += 1
       if (current > longest) {
         longest = current
@@ -97,43 +96,129 @@ function streaks(days: ActivityDay[]) {
       current = 0
     }
   }
-  // Counted backwards from the end of the window, which is what "current" can
-  // honestly mean for a snapshot that is not refetched on every render.
-  let trailing = 0
-  for (let i = days.length - 1; i >= 0; i--) {
-    if (days[i].commits > 0 || days[i].solved > 0) trailing += 1
-    else break
-  }
-  return { longest, endedOn, trailing }
+  return { longest, endedOn }
 }
 
-const busiest = activity.days.reduce((best, d) =>
-  d.commits + d.solved > best.commits + best.solved ? d : best,
-)
+export interface Channel {
+  id: ChannelId
+  /** What the section is called. */
+  label: string
+  /** The unit, for a sentence like "253 contributions". */
+  unit: string
+  /** How it was measured. Rendered next to the number, never omitted. */
+  source: string
+  href: string
+  /** CSS custom properties, index 0 = empty. */
+  ramp: string[]
+  cuts: [number, number, number]
+  cells: Cell[]
+  total: number
+  activeDays: number
+  longest: number
+  longestEndedOn: string | null
+  best: ActivityDay
+}
+
+function build(
+  id: ChannelId,
+  label: string,
+  unit: string,
+  source: string,
+  href: string,
+  rampVar: string,
+): Channel {
+  const count = (d: ActivityDay) => (id === 'commits' ? d.commits : d.solved)
+  const cuts = quartiles(activity.days.map(count))
+  const { longest, endedOn } = streaks((d) => count(d) > 0)
+
+  return {
+    id,
+    label,
+    unit,
+    source,
+    href,
+    ramp: [
+      'var(--hm-0)',
+      `var(--hm-${rampVar}-1)`,
+      `var(--hm-${rampVar}-2)`,
+      `var(--hm-${rampVar}-3)`,
+      `var(--hm-${rampVar}-4)`,
+    ],
+    cuts,
+    cells: activity.days.map((day, i) => ({
+      day,
+      week: Math.floor(i / DOW),
+      dow: i % DOW,
+      count: count(day),
+      level: level(count(day), cuts),
+    })),
+    total: activity.days.reduce((n, d) => n + count(d), 0),
+    activeDays: activity.days.filter((d) => count(d) > 0).length,
+    longest,
+    longestEndedOn: endedOn,
+    best: activity.days.reduce((b, d) => (count(d) > count(b) ? d : b)),
+  }
+}
+
+export const channels: Record<ChannelId, Channel> = {
+  commits: build(
+    'commits',
+    'GitHub',
+    'contributions',
+    'GitHub contributions collection',
+    'https://github.com/Mudit13-tech',
+    'gh',
+  ),
+  solved: build(
+    'solved',
+    'LeetCode',
+    'problems solved',
+    'LeetCode submission calendar',
+    'https://leetcode.com/u/Mudit1306/',
+    'lc',
+  ),
+}
+
+export const channelList: Channel[] = [channels.commits, channels.solved]
+
+/** Month ticks: the first column of each month, skipping the crowded last two. */
+export const monthTicks = (() => {
+  const out: Array<{ label: string; week: number }> = []
+  let last = ''
+  for (let w = 0; w < WEEKS; w++) {
+    const day = activity.days[w * DOW]
+    if (!day) continue
+    const label = MONTHS[Number(day.date.slice(5, 7)) - 1]
+    if (label !== last && w < WEEKS - 2) {
+      out.push({ label, week: w })
+      last = label
+    }
+  }
+  return out
+})()
 
 export const activityStats = {
   from: activity.from,
   to: activity.to,
   days: activity.days.length,
-  commits: activity.days.reduce((n, d) => n + d.commits, 0),
-  solved: activity.days.reduce((n, d) => n + d.solved, 0),
+  commits: channels.commits.total,
+  solved: channels.solved.total,
+  /** Days with something on either channel. */
   activeDays: activity.days.filter((d) => d.commits > 0 || d.solved > 0).length,
-  busiest,
-  ...streaks(activity.days),
+  busiest: activity.days.reduce((b, d) =>
+    d.commits + d.solved > b.commits + b.solved ? d : b,
+  ),
+  ...streaks((d) => d.commits > 0 || d.solved > 0),
 } as const
 
-/** Monthly totals — the table alternative to the grid, for anyone reading it
- * with a screen reader or with colour turned off. */
+/** Monthly totals — the table alternative to the grids, for anyone reading
+ * them with a screen reader or with colour turned off. */
 export const byMonth = (() => {
   const map = new Map<string, { label: string; commits: number; solved: number; days: number }>()
   for (const d of activity.days) {
     const key = d.date.slice(0, 7)
     const entry = map.get(key) ?? {
-      label: new Date(`${d.date}T00:00:00Z`).toLocaleString('en-US', {
-        month: 'long',
-        year: 'numeric',
-        timeZone: 'UTC',
-      }),
+      label: `${MONTHS_LONG[Number(d.date.slice(5, 7)) - 1]} ${d.date.slice(0, 4)}`,
       commits: 0,
       solved: 0,
       days: 0,
@@ -145,17 +230,3 @@ export const byMonth = (() => {
   }
   return [...map.entries()].map(([key, v]) => ({ key, ...v }))
 })()
-
-/** "14 March 2026" — one formatter, so every date in the system reads alike. */
-export function longDate(iso: string): string {
-  return new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  })
-}
-
-export function weekdayName(dow: number): string {
-  return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dow]
-}

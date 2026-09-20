@@ -157,12 +157,19 @@ export function AppIcon({
       style={{
         width: size,
         height: size,
-        borderRadius: Math.round(size * 0.29),
+        borderRadius: Math.round(size * 0.28),
         ['--tile' as string]: `var(--app-${id}, var(--surface-raised))`,
       }}
       aria-hidden="true"
     >
-      <Glyph name={id} size={Math.round(size * 0.52)} className="text-white/92" />
+      {/* Heavier than the interface stroke. A 1.5px line on a 44px tile reads
+          as a scratch; the glyph has to carry the icon at dock size. */}
+      <Glyph
+        name={id}
+        size={Math.round(size * 0.5)}
+        strokeWidth={1.75}
+        className="text-[rgb(255_255_255_/_0.95)]"
+      />
     </span>
   )
 }
@@ -171,10 +178,12 @@ export function Glyph({
   name,
   className = '',
   size = 16,
+  strokeWidth = 1.5,
 }: {
   name: GlyphName
   className?: string
   size?: number
+  strokeWidth?: number
 }) {
   return (
     <svg
@@ -183,7 +192,7 @@ export function Glyph({
       viewBox="0 0 16 16"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

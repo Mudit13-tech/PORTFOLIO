@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { completions, run, type Line } from './engine'
 import { useSystemApi } from '@/os/SystemProvider'
 import { pathFor } from '@/os/routes'
-import { profile } from '~/data'
+import { buildVersion, meta, profile } from '~/data'
+import { counts } from '@/lib/derived'
 
 /**
  * The terminal.
@@ -16,10 +17,19 @@ import { profile } from '~/data'
  */
 export function TerminalApp() {
   const api = useSystemApi()
+  // The banner is built from the same data the windows render, so it can never
+  // announce a count the rest of the system disagrees with.
   const [lines, setLines] = useState<Line[]>([
-    { kind: 'note', text: 'MUDIT OS terminal — type `help`.' },
+    { kind: 'note', text: `${meta.systemName} · build ${buildVersion}` },
+    {
+      kind: 'note',
+      text: `${counts.projects} projects · ${counts.failures} crash reports · ${counts.skills} modules mounted`,
+    },
+    { kind: 'out', text: 'type `help` for commands, `ls` to look around' },
+    { kind: 'note', text: '' },
   ])
   const [value, setValue] = useState('')
+  const [focused, setFocused] = useState(false)
   const [cwd, setCwd] = useState('/')
   const history = useRef<string[]>([])
   const cursor = useRef(-1)
@@ -102,11 +112,11 @@ export function TerminalApp() {
   const prompt = `mudit@os ${cwd} %`
 
   return (
-    <div
-      className="h-full flex flex-col bg-window"
-      onClick={() => input.current?.focus()}
-    >
-      <div ref={scroller} className="flex-1 overflow-auto p-4 mono text-[13px] term-col">
+    <div className="terminal h-full flex flex-col" onClick={() => input.current?.focus()}>
+      <div
+        ref={scroller}
+        className="flex-1 overflow-auto px-4 pt-3.5 pb-2 mono text-[13px] leading-[1.7] term-col"
+      >
         <div role="log" aria-live="polite" aria-label="Terminal output">
           {lines.map((l, i) => (
             <p
@@ -121,31 +131,59 @@ export function TerminalApp() {
                       : 'text-secondary'
               }
             >
-              {l.kind === 'in' ? <span className="text-ok">{prompt} </span> : null}
-              {l.text || ' '}
+              {l.kind === 'in' ? <Prompt cwd={cwd} /> : null}
+              {l.text || ' '}
             </p>
           ))}
         </div>
       </div>
 
-      <div className="flex items-center gap-2 border-t border-subtle px-4 py-2 mono text-[13px]">
-        <label htmlFor="term-input" className="text-ok shrink-0">
-          {prompt}
+      <div className="term-rail flex items-center gap-2 px-4 py-2.5 mono text-[13px] shrink-0">
+        <label htmlFor="term-input" className="shrink-0">
+          <span className="sr-only">{prompt}</span>
+          <Prompt cwd={cwd} />
         </label>
-        <input
-          id="term-input"
-          ref={input}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={onKeyDown}
-          spellCheck={false}
-          autoComplete="off"
-          autoCapitalize="off"
-          className="flex-1 bg-transparent outline-none text-primary caret-ok"
-          aria-label="Terminal input"
-        />
+        <span className="relative flex-1">
+          <input
+            id="term-input"
+            ref={input}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={onKeyDown}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            spellCheck={false}
+            autoComplete="off"
+            autoCapitalize="off"
+            className="w-full bg-transparent outline-none text-primary caret-transparent"
+            aria-label="Terminal input"
+          />
+          {/* Drawn at the column the text ends on. The field is monospace, so
+              `ch` is exact — and it shows only while focused, because a
+              blinking cursor in a window you are not typing into is a lie. */}
+          {focused && (
+            <span className="term-caret" style={{ left: `${value.length}ch` }} aria-hidden="true" />
+          )}
+        </span>
       </div>
     </div>
+  )
+}
+
+/**
+ * The prompt, in parts. A real shell colours the user, the host and the path
+ * differently, and reading `mudit@os /projects %` as one flat green string is
+ * the tell that this is a costume.
+ */
+function Prompt({ cwd }: { cwd: string }) {
+  return (
+    <span aria-hidden="true">
+      <span className="text-ok">mudit</span>
+      <span className="text-tertiary">@</span>
+      <span className="text-info">os</span>
+      <span className="text-tertiary"> {cwd} </span>
+      <span className="text-warn">%</span>{' '}
+    </span>
   )
 }
 

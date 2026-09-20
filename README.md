@@ -55,14 +55,14 @@ the desk behind it, blurred, with a hairline of light along the top edge. Where
 a browser cannot blur, the panel turns opaque; legibility never depends on the
 effect.
 
-**The heatmap shows two channels without lying about either.** GitHub
-contributions fill the upper-left triangle of a day, LeetCode submissions the
-lower-right, and the two are never summed — a commit count plus a problem count
-is a number that means nothing. Each ramp is single-hue and steps from its own
-quartiles over the sampled window, so the colour reads as busy-for-this-person
-rather than busy-against-an-invented-ceiling. It carries a legend, a live
-readout that arrow keys drive, and a monthly table for anyone reading it with a
-screen reader or with colour turned off.
+**One calendar per source, never one grid for both.** GitHub contributions and
+LeetCode submissions get a heatmap each, because they are measured in different
+units and adding them produces a number that means nothing. Each ramp is
+single-hue and steps from its own channel's quartiles over the sampled window —
+so the colour reads as busy-for-this-person rather than
+busy-against-an-invented-ceiling, and the legend prints the actual cut points.
+Both carry a live readout that arrow keys drive, and one shared monthly table
+for anyone reading them with a screen reader or with colour turned off.
 
 **The drag is 1:1.** No animation library. Pointer events write the transform
 directly and React never sees the intermediate frames, because a window that

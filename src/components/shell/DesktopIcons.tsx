@@ -56,9 +56,9 @@ export function DesktopIcons() {
               tabIndex={i === active ? 0 : -1}
               onFocus={() => setActive(i)}
               title={`${APP_TITLE[id]} — ${APP_SUBTITLE[id]}`}
-              className="desk-icon flex flex-col items-center gap-1.5 w-[92px] px-1 py-2 rounded-lg"
+              className="desk-icon flex flex-col items-center gap-1.5 w-[96px] px-1 py-2.5 rounded-lg"
             >
-              <AppIcon id={id} size={44} />
+              <AppIcon id={id} size={50} />
               {/* APP_TITLE has no spaces to break on, so the label is told it
                   may break anywhere rather than be allowed to widen the column
                   and push the whole grid off the right edge of the screen. */}
