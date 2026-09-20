@@ -1,16 +1,13 @@
 {
-  "name": "ics-workspace",
+  "name": "mudit-os",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "sync": "tsx scripts/fetch-activity.ts",
-    "prebuild": "tsx scripts/fetch-activity.ts",
+    "prebuild": "node scripts/stamp-build.mjs",
     "build": "next build",
-    "postbuild": "node scripts/check-lattice.mjs",
     "start": "next start",
-    "typecheck": "tsc --noEmit",
-    "lattice": "node scripts/check-lattice.mjs"
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "next": "^16.3.5",

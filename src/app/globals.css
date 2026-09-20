@@ -1,360 +1,237 @@
 @import 'tailwindcss';
 
 @source '../';
-@source '../../content';
+@source '../../data';
 
-/* ---------------------------------------------------------------- tokens
- * Token names carry roles, not hex values, so the light theme can re-value
+/* ------------------------------------------------------------------ tokens
+ * A graphite workstation, not a hacker terminal. The greens and ambers are
+ * borrowed from status LEDs: desaturated, warm, low-key. Nothing glows unless
+ * it is an error.
+ *
+ * Token names carry roles rather than hex values, so the light theme re-values
  * every one of them without a single component knowing a theme exists.
- * An amber that is correct on #07090A is unreadable on paper.
  */
 :root {
   color-scheme: dark;
 
-  --c-void: #07090a;
-  --c-panel: #0e1417;
-  --c-wire: #1c2a2f;
-  --c-text: #c9d6d3;
-  /* The brief specifies #5E7377. At 11px on the pane fill that measures
-   * 3.71:1, which fails WCAG AA and costs the accessibility score the same
-   * brief asks to hold above 95. This is that hue lightened by the least
-   * amount that clears 4.5:1 (it measures 4.74:1). Revert to #5e7377 for the
-   * exact specified value and accept the contrast failure. */
-  --c-dim: #718488;
-  --c-live: #e8b33c;
-  --c-cool: #52b8c4;
-  --c-alert: #ff5f4a;
+  --surface-desk: #14171a;
+  --surface-window: #1b1f23;
+  --surface-chrome: #22272c;
+  --surface-raised: #2a3035;
 
-  /* Channel 0 intensity ramp — amber. Level 0 is the unsampled ground. */
-  --r-0: #131b1e;
-  --r-gh-1: #6b4e17;
-  --r-gh-2: #b8841f;
-  --r-gh-3: #e8b33c;
-  --r-gh-4: #ffd37a;
+  --line-subtle: #2e353b;
+  --line-strong: #3d454c;
 
-  /* Channel 1 intensity ramp — cool, same lightness structure. */
-  --r-lc-1: #17494f;
-  --r-lc-2: #2d8794;
-  --r-lc-3: #52b8c4;
-  --r-lc-4: #a6e7ef;
+  --text-primary: #e4e7e5;
+  --text-secondary: #9ba5a8;
+  /* The spec gives #6B7478. On --surface-window that measures 3.6:1, which
+   * fails AA for body text and costs the accessibility score the same spec
+   * asks to hold above 95. This is that hue lifted the least amount that
+   * clears 4.5:1. Revert to #6b7478 for the exact specified value and accept
+   * the contrast failure. */
+  --text-tertiary: #7d878b;
 
-  /* Seam between the two triangles: the page ground, so the ramps never blend. */
-  --c-seam: var(--c-void);
+  --signal-ok: #7fa76b;
+  --signal-warn: #c99a4a;
+  --signal-error: #b85c4a;
+  --signal-info: #6e8ca0;
 
-  --u: 13px;
+  --focus-ring: #8fbf7a;
+
+  /* Exactly two elevation levels. More makes the window stack read as mush. */
+  --shadow-rest: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 12px rgb(0 0 0 / 0.22);
+  --shadow-focus: 0 2px 6px rgb(0 0 0 / 0.36), 0 16px 40px rgb(0 0 0 / 0.34);
+
+  --chrome-h: 32px;
+  --topbar-h: 40px;
+  --dock-h: 44px;
 }
 
 :root[data-theme='light'] {
   color-scheme: light;
 
-  --c-void: #f2f0e9;
-  --c-panel: #fbfaf5;
-  --c-wire: #d5d0c2;
-  --c-text: #17211f;
-  --c-dim: #63706f;
-  --c-live: #8a5a00;
-  --c-cool: #0d6a75;
-  --c-alert: #bf2e18;
+  --surface-desk: #e8e6e0;
+  --surface-window: #f4f2ed;
+  --surface-chrome: #dedbd3;
+  --surface-raised: #d3cfc6;
 
-  /* Intensity still runs pale to saturated; the direction of the ramp is the
-     data axis, so it inverts with the ground rather than following it. */
-  --r-0: #e6e2d6;
-  --r-gh-1: #f0cf88;
-  --r-gh-2: #d9a22e;
-  --r-gh-3: #a9741a;
-  --r-gh-4: #6e4a08;
+  --line-subtle: #cbc6bb;
+  --line-strong: #b0a99c;
 
-  --r-lc-1: #9fd9e0;
-  --r-lc-2: #4fa9b5;
-  --r-lc-3: #1c7a86;
-  --r-lc-4: #0b4e58;
+  --text-primary: #1a1d20;
+  --text-secondary: #4d5458;
+  --text-tertiary: #646c70;
 
-  --c-seam: var(--c-panel);
+  /* The same hues darkened for contrast against paper. */
+  --signal-ok: #4c7238;
+  --signal-warn: #8a6410;
+  --signal-error: #8f3b2a;
+  --signal-info: #3f5c72;
+
+  --focus-ring: #3f6b2a;
+
+  --shadow-rest: 0 1px 2px rgb(0 0 0 / 0.12), 0 4px 12px rgb(0 0 0 / 0.08);
+  --shadow-focus: 0 2px 6px rgb(0 0 0 / 0.16), 0 16px 40px rgb(0 0 0 / 0.14);
 }
 
-@theme inline {
-  --color-void: var(--c-void);
-  --color-panel: var(--c-panel);
-  --color-wire: var(--c-wire);
-  --color-text: var(--c-text);
-  --color-dim: var(--c-dim);
-  --color-live: var(--c-live);
-  --color-cool: var(--c-cool);
-  --color-alert: var(--c-alert);
-
-  --color-r-0: var(--r-0);
-  --color-r-gh-1: var(--r-gh-1);
-  --color-r-gh-2: var(--r-gh-2);
-  --color-r-gh-3: var(--r-gh-3);
-  --color-r-gh-4: var(--r-gh-4);
-  --color-r-lc-1: var(--r-lc-1);
-  --color-r-lc-2: var(--r-lc-2);
-  --color-r-lc-3: var(--r-lc-3);
-  --color-r-lc-4: var(--r-lc-4);
-
-  --font-mono: var(--font-jetbrains), ui-monospace, 'SF Mono', Menlo, monospace;
-
-  /* The spacing scale IS the lattice. Tailwind's default 0.25rem step is
-     replaced outright, so p-1 is one cell pitch and a non-lattice gap is not
-     expressible in a class name. */
-  --spacing: 13px;
-
-  --text-xs: 11px;
-  --text-xs--line-height: 13px;
-  --text-sm: 13px;
-  --text-sm--line-height: 26px;
-  --text-base: 16px;
-  --text-base--line-height: 26px;
-  --text-lg: 22px;
-  --text-lg--line-height: 39px;
-  --text-lg--letter-spacing: -0.01em;
-  --text-xl: 34px;
-  --text-xl--line-height: 52px;
-  --text-xl--letter-spacing: -0.03em;
-  --text-2xl: 56px;
-  --text-2xl--line-height: 65px;
-  --text-2xl--letter-spacing: -0.03em;
-}
-
-/* ------------------------------------------------------------------ base */
-@layer base {
-  * {
-    min-width: 0;
-  }
-
-  html {
-    background: var(--c-void);
-    -webkit-text-size-adjust: 100%;
-  }
-
-  body {
-    background: var(--c-void);
-    color: var(--c-text);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    line-height: 26px;
-    font-variant-ligatures: none;
-    -webkit-font-smoothing: antialiased;
-    overflow: hidden;
-  }
-
-  /* The stacked layout scrolls; the tiled one does not. */
-  @media (width < 1235px) {
-    body {
-      overflow: auto;
-    }
-  }
-
-  ::selection {
-    background: var(--c-live);
-    color: var(--c-void);
-  }
-
-  :focus-visible {
-    outline: 1px solid var(--c-live);
-    outline-offset: 2px;
-  }
-
-  a {
-    color: var(--c-cool);
-    text-decoration-thickness: 1px;
-    text-underline-offset: 2px;
-  }
-
-  a:hover {
-    color: var(--c-live);
-  }
-
-  button {
-    font: inherit;
-    color: inherit;
-    text-align: left;
-  }
-
-  input {
-    font: inherit;
-    color: inherit;
-    caret-color: var(--c-live);
-  }
-
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--c-wire) transparent;
-  }
-
-  ::-webkit-scrollbar {
-    width: 2px;
-    height: 2px;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--c-wire);
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-}
-
-/* ----------------------------------------------------------------- utility */
-@layer utilities {
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  /* Hairline rules sit on the lattice like everything else. */
-  .rule {
-    border-top: 1px solid var(--c-wire);
-  }
-}
-
-/* --------------------------------------------------------------- component */
-@layer components {
-  .pane {
-    background: var(--c-panel);
-    border: 1px solid var(--c-wire);
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    transition: border-color 120ms linear;
-  }
-
-  .pane[data-focused='true'] {
-    border-color: var(--c-live);
-  }
-
-  .pane-title {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    height: 26px;
-    flex: 0 0 26px;
-    padding-inline: 13px;
-    border-bottom: 1px solid var(--c-wire);
-    color: var(--c-dim);
-    font-size: 11px;
-    line-height: 13px;
-    user-select: none;
-  }
-
-  .pane[data-focused='true'] .pane-title {
-    color: var(--c-live);
-    border-bottom-color: color-mix(in oklab, var(--c-live) 45%, var(--c-wire));
-  }
-
-  /* The focus indicator is one cell, drawn in the title bar. */
-  .pane-tick {
-    width: 11px;
-    height: 11px;
-    flex: 0 0 11px;
-    background: var(--c-wire);
-    transition:
-      background-color 120ms linear,
-      box-shadow 120ms linear;
-  }
-
-  .pane[data-focused='true'] .pane-tick {
-    background: var(--c-live);
-    box-shadow: 0 0 0 2px color-mix(in oklab, var(--c-live) 22%, transparent);
-  }
-
-  .pane-body {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: auto;
-    padding: 13px;
-  }
-
-  /* ---------------------------------------------------------------- tiling
-   * Stacked first. The tiling manager is the enhancement, not the base case —
-   * a scaled-down tiling manager on a phone is the failure mode this avoids.
-   */
-  .tiles {
-    display: grid;
-    gap: 13px;
-    grid-template-areas:
-      'whoami'
-      'activity'
-      'ps'
-      'run'
-      'log';
-  }
-
-  @media (width >= 754px) {
-    .tiles {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      grid-template-areas:
-        'activity activity'
-        'whoami   log'
-        'ps       run';
-    }
-  }
-
-  /* The calendar sizes the workspace, not the other way round. 726px of grid
-   * plus 26px of padding and 2px of border is 754px, so the activity pane is
-   * 754px and the two tiles beneath it are cut to match: 377 + 13 + 364.
-   * The remaining column is 429, and 429 + 13 + 754 = 1196. */
-  @media (width >= 1235px) {
-    .tiles {
-      width: 1196px;
-      margin-inline: auto;
-      height: calc(100dvh - 52px);
-      height: round(down, calc(100dvh - 52px), 13px);
-      grid-template-columns: 429px 377px 364px;
-      grid-template-rows: minmax(0, 338px) minmax(0, 1fr);
-      grid-template-areas:
-        'whoami activity activity'
-        'log    ps       run';
-    }
-  }
-
-  /* Zoom keeps every pane mounted — an instrument mid-run must not lose its
-     generator because a neighbouring tile was hidden. */
-  .tiles[data-zoom] > .pane {
-    display: none;
-  }
-
-  .tiles[data-zoom] > .pane[data-focused='true'] {
-    display: flex;
-    grid-area: 1 / 1 / -1 / -1 !important;
-  }
-}
-
-/* -------------------------------------------------------------- animation
- * Tiles are allocated top-down, the way a window manager draws them. No
- * scroll-triggered reveals anywhere on the site.
+/* ------------------------------------------------------- tailwind bridge
+ * `inline` matters: it inlines the referenced var so each token re-resolves
+ * per theme instead of being frozen at definition.
  */
-@keyframes allocate {
+@theme inline {
+  --color-desk: var(--surface-desk);
+  --color-window: var(--surface-window);
+  --color-chrome: var(--surface-chrome);
+  --color-raised: var(--surface-raised);
+
+  --color-subtle: var(--line-subtle);
+  --color-strong: var(--line-strong);
+
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-tertiary: var(--text-tertiary);
+
+  --color-ok: var(--signal-ok);
+  --color-warn: var(--signal-warn);
+  --color-error: var(--signal-error);
+  --color-info: var(--signal-info);
+  --color-focus: var(--focus-ring);
+
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* 1.25 ratio on a 15px base — deliberately smaller than web-typical,
+   * because OS interfaces are dense. */
+  --text-display: 32px;
+  --text-display--line-height: 1.15;
+  --text-display--letter-spacing: -0.02em;
+  --text-h1: 24px;
+  --text-h1--line-height: 1.25;
+  --text-h1--letter-spacing: -0.01em;
+  --text-h2: 19px;
+  --text-h2--line-height: 1.3;
+  --text-body: 15px;
+  --text-body--line-height: 1.6;
+  --text-ui: 14px;
+  --text-ui--line-height: 1.4;
+  --text-mono: 13px;
+  --text-mono--line-height: 1.55;
+  --text-micro: 11px;
+  --text-micro--line-height: 1.3;
+  --text-micro--letter-spacing: 0.04em;
+}
+
+/* --------------------------------------------------------------- base */
+
+* {
+  min-width: 0;
+}
+
+html {
+  /* Counters and clocks must not jitter. */
+  font-variant-numeric: tabular-nums;
+}
+
+body {
+  background: var(--surface-desk);
+  color: var(--text-primary);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Monospace means "this is machine output". Using it for decoration destroys
+ * that signal, so it is applied through this class and nowhere else. */
+.mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.micro {
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+}
+
+/* Field names, which is exactly what they are. */
+.field-label {
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+.prose-col {
+  max-width: 68ch;
+}
+
+.term-col {
+  max-width: 72ch;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ---------------------------------------------------------- wallpaper
+ * A 24px dot grid at 4% over the base, plus one radial light source in the
+ * upper left. Zero DOM nodes, nothing that competes with a window.
+ */
+.wallpaper {
+  background-color: var(--surface-desk);
+  background-image:
+    radial-gradient(
+      ellipse 80% 60% at 18% 0%,
+      rgb(255 255 255 / 0.045),
+      transparent 60%
+    ),
+    radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.04) 1px, transparent 0);
+  background-size:
+    100% 100%,
+    24px 24px;
+}
+
+:root[data-theme='light'] .wallpaper {
+  background-image:
+    radial-gradient(ellipse 80% 60% at 18% 0%, rgb(0 0 0 / 0.03), transparent 60%),
+    radial-gradient(circle at 1px 1px, rgb(0 0 0 / 0.055) 1px, transparent 0);
+}
+
+/* ------------------------------------------------------------- motion
+ * Motion explains system behaviour. Nothing animates for atmosphere, and
+ * nothing animates a property other than transform and opacity.
+ */
+@keyframes window-open {
   from {
-    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+    transform: translate3d(var(--wx), calc(var(--wy) + 8px), 0) scale(0.96);
   }
   to {
-    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    transform: translate3d(var(--wx), var(--wy), 0) scale(1);
   }
 }
 
-@keyframes sweep {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-@keyframes draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes probe {
+@keyframes boot-line {
   from {
     opacity: 0;
   }
@@ -363,77 +240,150 @@
   }
 }
 
-@keyframes flash {
-  from {
-    color: var(--c-live);
-  }
-  to {
-    color: inherit;
-  }
-}
-
-@keyframes caret {
+@keyframes shake {
   0%,
-  45% {
-    opacity: 1;
-  }
-  50%,
-  95% {
-    opacity: 0;
-  }
   100% {
-    opacity: 1;
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
   }
 }
 
-.allocate {
-  animation: allocate 260ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
-  animation-delay: calc(var(--seq, 0) * 65ms);
+@keyframes sheet-up {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
 }
 
-.caret {
-  animation: caret 1.04s steps(1, end) infinite;
+@keyframes notice-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
-.flash {
-  animation: flash 390ms linear both;
+.anim-open {
+  animation: window-open 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
-/* Boot and first-visit hint are gated by attributes stamped before paint by
-   the inline script in the document head, so neither can flash. */
-.boot {
-  display: none;
-}
-:root[data-boot='1'] .boot {
-  display: grid;
+.anim-shake {
+  animation: shake 180ms ease-in-out 2;
 }
 
-/* Shown once, to a visitor who has never been here, and never again. */
-.hint {
-  display: none;
-}
-:root[data-hint='1'] .hint {
-  display: inline;
+.anim-sheet {
+  animation: sheet-up 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
-/* ------------------------------------------------------------ quiet motion */
+.anim-notice {
+  animation: notice-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.anim-boot-line {
+  animation: boot-line 1ms linear both;
+  animation-delay: calc(var(--i) * 55ms);
+}
+
+/* The single most commonly skipped requirement in portfolios like this.
+ * Every duration collapses except opacity crossfades. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 1ms !important;
+    animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 1ms !important;
+    transition-duration: 100ms !important;
     scroll-behavior: auto !important;
   }
 
-  .boot,
-  :root[data-boot='1'] .boot {
-    display: none;
+  .anim-boot-line {
+    animation-delay: 0ms !important;
+  }
+}
+
+/* CRT mode — the Konami egg. Disabled entirely under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-crt='1'] body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0.16) 0px,
+      rgb(0 0 0 / 0.16) 1px,
+      transparent 1px,
+      transparent 3px
+    );
   }
 
-  .caret {
-    animation: none;
-    opacity: 1;
+  :root[data-crt='1'] body {
+    text-shadow:
+      0.4px 0 0 rgb(255 80 80 / 0.28),
+      -0.4px 0 0 rgb(80 200 255 / 0.28);
   }
+}
+
+/* ------------------------------------------------- progressive enhancement
+ * Two complete presentations of the same content, chosen before first paint.
+ *
+ * `data-os="on"` is set by the inline script in the root layout, so it exists
+ * only when scripting does. With it, the operating system renders and the plain
+ * document is removed. Without it, the OS chrome never paints and the visitor
+ * gets the full portfolio as an ordinary readable page.
+ *
+ * Neither state flashes, because the decision is made before the first frame
+ * rather than after hydration.
+ */
+:root[data-os='on'] .static-doc {
+  display: none;
+}
+
+:root:not([data-os='on']) .os-shell {
+  display: none;
+}
+
+/* Windows are positioned entirely by transform, and contained so a repaint in
+ * one never costs the others. */
+.window {
+  contain: layout style paint;
+  will-change: transform;
+}
+
+/* 1:1 dragging — no smoothing, no spring. A window that lags the cursor
+ * destroys the illusion faster than any visual flaw. */
+.dragging {
+  user-select: none;
+  cursor: grabbing;
+}
+
+.dragging * {
+  pointer-events: none;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
 }

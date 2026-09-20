@@ -1,28 +1,27 @@
 import type { Metadata, Viewport } from 'next'
-import { JetBrains_Mono } from 'next/font/google'
-import { profile } from '~/content/profile'
+import { Geist, Geist_Mono } from 'next/font/google'
+import { meta, profile } from '~/data'
+import { SystemProvider } from '@/os/SystemProvider'
 import './globals.css'
 
-/* One typeface. All hierarchy comes from size, weight and tracking. */
-const mono = JetBrains_Mono({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-jetbrains',
-  weight: ['400', '500', '700'],
-})
-
-const description =
-  profile.summary ??
-  `${profile.discipline} at ${profile.institution}. A keyboard-driven workspace over a year of real contribution and problem-solving data.`
+/**
+ * Two families, clearly distinct. Geist Sans carries the interface; Geist Mono
+ * is reserved for anything the system says about itself — terminal, logs,
+ * errors, timestamps, file paths, metrics. When mono appears it means "this is
+ * machine output", and using it decoratively would destroy that signal.
+ */
+const sans = Geist({ subsets: ['latin'], display: 'swap', variable: '--font-geist' })
+const mono = Geist_Mono({ subsets: ['latin'], display: 'swap', variable: '--font-geist-mono' })
 
 export const metadata: Metadata = {
-  title: { default: `${profile.name} · workspace`, template: `%s · ${profile.name}` },
-  description,
-  applicationName: 'ics workspace',
-  authors: [{ name: profile.name }],
+  metadataBase: new URL('http://localhost:3000'),
+  title: { default: `${profile.name} — ${meta.systemName}`, template: `%s · ${meta.systemName}` },
+  description: meta.description,
+  applicationName: meta.systemName,
+  authors: [{ name: profile.name, url: profile.links.github }],
   openGraph: {
-    title: `${profile.name} · workspace`,
-    description,
+    title: `${profile.name} — ${meta.systemName}`,
+    description: meta.description,
     type: 'profile',
   },
   robots: { index: true, follow: true },
@@ -32,38 +31,57 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
+  colorScheme: 'dark light',
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#07090A' },
-    { media: '(prefers-color-scheme: light)', color: '#F2F0E9' },
+    { media: '(prefers-color-scheme: dark)', color: '#14171A' },
+    { media: '(prefers-color-scheme: light)', color: '#E8E6E0' },
   ],
 }
 
 /**
- * Stamped before first paint so the theme, the cold start and the first-visit
- * hint are all settled by the time anything renders. Nothing here can flash,
- * and none of it shifts layout.
+ * Stamped before first paint so the theme is settled by the time anything
+ * renders. Every access is wrapped — private browsing throws on localStorage,
+ * and a portfolio that white-screens in a private window fails the one test a
+ * cautious visitor runs.
  */
-const PREFLIGHT = `(function(){try{var d=document.documentElement,s=localStorage;
-var t=s.getItem('ics:theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}
-d.dataset.theme=t;
-var quiet=matchMedia('(prefers-reduced-motion: reduce)').matches;
-if(!s.getItem('ics:booted')&&!quiet){d.dataset.boot='1'}
-if(!s.getItem('ics:hinted')){d.dataset.hint='1'}}catch(e){document.documentElement.dataset.theme='dark'}})()`
+const PREFLIGHT = `(function(){var d=document.documentElement;
+// Marks that scripting is available, before first paint. Without it the CSS
+// hides the operating system and shows the plain document instead, so a
+// visitor with JavaScript disabled gets the whole portfolio as a readable
+// page rather than an empty shell.
+d.dataset.os='on';
+try{var s=localStorage,t=s.getItem('mudit-os.v1.theme');
+if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}
+d.dataset.theme=t}catch(e){d.dataset.theme='dark'}})()`
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: profile.name,
+    jobTitle: profile.role,
+    affiliation: { '@type': 'CollegeOrUniversity', name: profile.institution },
+    url: profile.links.github,
+    sameAs: [profile.links.github, profile.links.leetcode].filter(Boolean),
+  }
+
   return (
-    <html lang="en" className={mono.variable} suppressHydrationWarning>
+    <html lang="en" className={`${sans.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: PREFLIGHT }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
       </head>
       <body>
         <a
-          href="#workspace"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-1 focus:top-1 focus:z-50 focus:border focus:border-live focus:bg-panel focus:px-1 focus:text-xs focus:text-live"
+          href="#content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[2000] focus:bg-window focus:border focus:border-focus focus:px-2 focus:py-1 focus:mono focus:text-[12px]"
         >
-          skip to the workspace
+          Skip to content
         </a>
-        {children}
+        <SystemProvider>{children}</SystemProvider>
       </body>
     </html>
   )

@@ -1,211 +1,89 @@
-# ics workspace
+# MUDIT OS
 
-A personal site built as a keyboard-driven tiling workspace rather than a page:
-five panes, a vim-style status bar, and a contribution calendar that merges two
-data sources into single cells split on the diagonal.
+A developer portfolio built as a personal operating system. Projects are
+applications, skills are installed modules, experiments are test builds,
+abandoned work sits in the bin, and the things that broke are filed as crash
+reports rather than hidden.
 
-Instrumentation and control is the discipline of reading a live system and
-acting on what it tells you, so the interface is a monitored process — channels,
-samples, a status bar, a control surface — and the vocabulary follows from that
-rather than from terminal decoration.
-
----
-
-## The one rule
-
-**A contribution cell is 11px with a 2px gutter. That sum — 13px — is the only
-spacing value the site is allowed to use.** Pane gutters, column widths, rules,
-the focus tick, the status bar, the sort chart, the pathfinding grid: all of it
-is a multiple of 13.
-
-This is enforced, not merely intended:
-
-- `src/app/globals.css` replaces Tailwind's spacing scale outright with
-  `--spacing: 13px`, so `p-1` is one cell pitch and a non-lattice gap cannot be
-  written as a class name.
-- `scripts/check-lattice.mjs` runs on every build and fails it if any
-  hand-written `px` value in `src/` or `content/` is off the grid. The only
-  exemptions are `0`, `1` (hairlines), `2` (the gutter), `11` (the cell), the
-  type scale, and `src/lib/lattice.ts`, which is where those numbers are
-  defined.
-
-The calendar sizes the workspace, not the other way round: 726px of grid plus
-26px of padding and 2px of border is 754px, so the activity pane is 754px and
-the tiles beneath it are cut to match.
-
----
-
-## Running it
+> There is no final version. Only the next build.
 
 ```bash
-npm install
-cp .env.example .env     # optional — see Data below
-npm run sync             # take a fresh sample (also runs automatically on build)
-npm run dev
+npm run dev        # http://localhost:3000
+npm run build      # stamps the build date, then prerenders every route
+npm run typecheck  # next typegen && tsc --noEmit
 ```
 
-| script | what it does |
-| --- | --- |
-| `npm run dev` | development server |
-| `npm run sync` | sample both channels into `data/activity.json` |
-| `npm run build` | sample, build, then check the lattice |
-| `npm run lattice` | check the lattice on its own |
-| `npm run typecheck` | `tsc --noEmit` |
+## What holds it together
 
----
+**Every count is derived.** No component contains a number that describes the
+content. The boot screen says nine crash reports because `failures.length === 9`;
+add a tenth and the boot screen, the desktop icon, the dock and the system
+monitor all change together. `src/lib/derived.ts` is the only place that counts.
 
-## Fill these in
+**Every number carries its source.** The system monitor renders the method
+beside the measurement — which API, which file, which date it was sampled. A
+metric without a definition is decoration, so `stability` shows its formula
+(`resolved ÷ total`) next to its value.
 
-Everything the site does not know about you renders as a designed empty state
-in the interface's own voice, never as filler. Two files:
+**Every failure is anchored to a commit.** Each crash report cites a real sha
+and the verbatim commit message, so anyone can open it on GitHub and check.
 
-**`content/profile.ts`** — `summary` (one sentence of substance), `location`,
-`status`, `email`, and `cv` (drop a PDF in `public/` and point at it; the `:cv`
-command stays disabled until you do).
+**The OS sits on top of a document, not instead of one.** Every app is a real
+URL that server-renders on its own. An inline script sets `data-os="on"` before
+first paint; with it the window manager renders, without it the CSS shows the
+plain document instead. So a visitor with JavaScript disabled, and a crawler
+that does not execute it, both get the whole portfolio as readable HTML — and
+neither state flashes, because the choice is made before the first frame.
 
-**`content/projects.ts`** — four or five real projects. Each needs a `state`
-(`running` = actively maintained, `sleeping` = works but untouched, `zombie` =
-abandoned), an `uptime` in your own words, and optionally one `metric` you can
-defend. Leave `metric` out rather than rounding something up; the row renders
-fine without it. Filling this file also generates `/work/<slug>` case study
-routes.
+**One content layer, three shells.** Desktop gets a window manager, tablet a
+single maximised window, phone a stack of full-screen sheets. All three render
+the identical app components. A 390px screen never pretends to be a draggable
+desktop.
 
----
+**The drag is 1:1.** No animation library. Pointer events write the transform
+directly and React never sees the intermediate frames, because a window that
+lags the cursor is the loudest possible counter-argument to "I can build a
+system".
 
-## Data
-
-Two channels are sampled at build time and written to a committed JSON
-snapshot. **The site renders from that snapshot alone and never fetches in the
-browser**, so a third-party outage cannot produce an empty grid — the worst case
-is a stale window with the channel marked degraded in the interface.
-
-| | channel 0 | channel 1 |
-| --- | --- | --- |
-| source | GitHub | LeetCode |
-| with credentials | GraphQL `contributionsCollection`, exact counts | — |
-| without | the public contributions document | community GraphQL, no credentials exist |
-| reads as | amber, upper-left triangle | cyan, lower-right triangle |
-
-Resolution order per channel is **live fetch → last good snapshot → the
-checked-in fallback**. `data/activity.fallback.json` is committed and
-schema-valid, so a first build succeeds before any credentials exist.
-
-Environment (`.env`): `GITHUB_USERNAME`, `GITHUB_TOKEN` (optional),
-`LEETCODE_USERNAME`. No token is ever inlined.
-
-**Set `GITHUB_TOKEN` if you can.** It is optional and the build succeeds
-without it, but unauthenticated GitHub allows 60 API calls an hour, and the
-events feed it serves without a token has its push payloads trimmed — no commit
-messages. With a token you get 5000 calls an hour, exact contribution counts
-from GraphQL, and commit messages straight from the feed. Without one the
-script reads messages from the repositories the feed names instead, and if even
-that is refused it holds the last good events rather than emptying the log.
-A classic token with no scopes is enough.
-
-`contributionsCollection` is capped at one year per request and the window is
-371 days, so it is sampled in two abutting spans and merged.
-
-Two notes that cut against common assumptions:
-
-- **LeetCode needs no CORS proxy here.** CORS is a browser policy. The endpoint
-  is queried from Node at build time, so it never applies. The response is
-  still schema-validated on arrival, because it is unofficial and can change
-  without notice.
-- **Per-day hardest difficulty does not exist in the calendar endpoint.** It
-  returns timestamp→count only. Difficulty is available as a lifetime aggregate
-  and per-problem for roughly the last twenty accepted submissions, so the
-  status bar shows it for recent days where it is genuinely known and omits the
-  field entirely otherwise. It is never guessed.
-
-`.github/workflows/sample.yml` resamples daily and commits only when something
-changed. Pages carry `revalidate: 86400`.
-
----
-
-## Keys
-
-Every one of these is also a button, a link, or a tap target. The keyboard is a
-shortcut, not the entrance.
-
-| key | |
-| --- | --- |
-| `h` `j` `k` `l`, arrows | move focus between panes |
-| `enter` | zoom the focused pane |
-| `esc` | restore, detach, or close whatever is open |
-| `:` | command palette |
-| `/` | filter the process table |
-| `g` / `r` | seed the simulation / restore the measured year |
-| `?` | every binding |
-
-Inside the calendar the arrows move the day cursor and write the day's detail
-into the status bar rather than opening a tooltip.
-
----
-
-## The simulation
-
-`g` seeds Conway's Game of Life from the real year and steps it at ~6fps over
-the same grid, interpolating rather than cutting: the measured year recedes to
-22% and stays legible underneath while the seed propagates a column at a time.
-
-**One thing to know before you show it to anyone.** The seeding rule is
-`SEED_MODE` in `src/components/heatmap/life.ts`, and it defaults to `'active'`
-— any day with any activity becomes a live cell. Measured against the committed
-snapshot, that seeds 92 cells and **settles into six still lifes by generation
-three**. A run of consecutive active days is a solid block, and the interior of
-a solid block dies of overpopulation on the first tick. That is Conway behaving
-correctly, not a bug, but it does mean the simulation is over in half a second.
-
-Switching that one constant to `'parity'` seeds days whose combined count is
-odd. Same data, similar density (50 cells), but the blocks come out textured
-instead of solid, so they break into gliders and oscillators — measured on the
-same snapshot it was still running at generation 200 with ~168 alive. The
-on-screen description follows the constant, so it can never describe a seed the
-simulation is not using.
-
-Either way the run reports its own terminal state — `settled at gen 4 · 6 still`
-— and releases the timer instead of spinning on a fixed point.
-
-Under `prefers-reduced-motion` the simulation becomes a static toggle with a
-manual `step`, and the cold-boot sequence is skipped entirely.
-
----
-
-## Structure
+## Layout
 
 ```
-content/          profile.ts, projects.ts — the two files you edit
-data/             committed snapshot + checked-in fallback
-scripts/          fetch-activity.ts (acquisition), check-lattice.mjs (the rule)
-src/lib/          lattice.ts (every geometric constant), snapshot.ts, workspace.tsx
-src/components/   Pane shell, StatusBar, Boot, palette, help
-  heatmap/        the split-diagonal calendar and the Life engine
-  run/            sort.ts, astar.ts — real step machines, and their instruments
-  panes/          whoami, activity, ps, run, log
+data/            content, typed. The only source of counts.
+src/os/          the system: store, geometry, drag, shortcuts, routing
+src/apps/        app content. No hooks — renders server-side and in a window
+src/components/  window manager, shells, overlays, primitives
+src/lib/         derived.ts — every count, cross-link and metric
+src/app/         routes. One per app, one per record
 ```
 
-`./run` executes genuinely. Each algorithm yields a frame per comparison or
-expansion, and the pane pulls one frame per interval from a suspended
-generator; history is kept so the scrubber can run backwards, but nothing is
-computed ahead of the playhead. Nothing anywhere is a recording.
+## Before this is ready to send to anyone
 
----
+The system is complete; some of the content is still yours to write.
 
-## Measured
+1. **Crash reports are drafts.** All nine are reconstructed from real commits and
+   carry `confirmed: false`, which renders a visible "drafted from commit
+   history" marker. Read each one, correct what is wrong, fill in `cost` where
+   you remember it, then set `confirmed: true`. The interface stops marking them
+   the moment you do.
+2. **`contribution` and `retrospective`** on each project say `TODO`. They render
+   as honest empty states until you write them. These are the two fields that
+   separate this from every other portfolio — "what I built", specifically, and
+   "what I'd do differently".
+3. **Contact is unpublished.** `data/profile.ts` has `email`, `linkedin` and
+   `resume` set to `null`, which render as designed empty states rather than dead
+   links. Drop a PDF in `/public`, set `resume: '/your-file.pdf'`, and the top-bar
+   Résumé link goes live.
+4. **`currently` is dated.** Review it quarterly — the date renders next to it,
+   so a stale entry is visible rather than silent.
+5. **`metadataBase`** in `src/app/layout.tsx` and the origin in `sitemap.ts` /
+   `robots.ts` point at localhost. Change them when you pick a domain.
 
-Lighthouse against the production build, desktop and mobile presets:
+## Keyboard
 
-| | desktop | mobile |
-| --- | --- | --- |
-| performance | 100 | 97 |
-| accessibility | 100 | 100 |
-| best practices | 100 | 100 |
-| SEO | 100 | 100 |
+`?` shortcuts · `Esc` close · `Ctrl` `` ` `` cycle · `Ctrl` `1`–`8` open by index ·
+`Ctrl` `T` terminal · `Ctrl` `W` close · `Ctrl` `M` minimize · `Ctrl` `↑`
+maximize · `Ctrl` `←`/`→` snap · `Ctrl` `Shift` `D` dev mode ·
+`Ctrl` `Shift` `R` reset and replay boot.
 
-CLS 0.003 desktop / 0 mobile. No failing audits, no console errors.
-
-One deliberate deviation from the brief's palette is recorded in
-`src/app/globals.css`: `--dim` is specified as `#5E7377`, which measures 3.71:1
-against the pane fill at 11px and fails WCAG AA. It ships as the same hue
-lightened by the least amount that clears 4.5:1. Reverting the one line restores
-the exact specified value and costs about seven accessibility points.
+The terminal has tab completion, history, and `ls`/`cd`/`cat` over the real
+content tree. `cat failures/ota-dev-bundle` prints the crash report.
