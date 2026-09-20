@@ -85,7 +85,7 @@ function Detail() {
   return null
 }
 
-export function StatusBar({ days }: { days: Day[] }) {
+export function StatusBar({ days, asOf }: { days: Day[]; asOf: string }) {
   const { state, dispatch } = useWorkspace()
   const r = useReadout()
 
@@ -108,7 +108,7 @@ export function StatusBar({ days }: { days: Day[] }) {
         {r.kind === 'idle' ? (
           <span className="hidden items-center gap-1 sm:flex">
             <span className="text-dim">30d</span>
-            <Sparkline days={days} />
+            <Sparkline days={days} asOf={asOf} />
           </span>
         ) : (
           <span className="truncate">

@@ -149,7 +149,14 @@ async function ghApi<T>(path: string): Promise<T> {
       },
     }),
   )
-  if (!res.ok) throw new Error(`${path.split('?')[0]} ${res.status}`)
+  if (!res.ok) {
+    const limited = res.status === 403 && res.headers.get('x-ratelimit-remaining') === '0'
+    throw new Error(
+      limited
+        ? `${path.split('?')[0]} 403 — hourly budget spent${GH_TOKEN ? '' : ' (unauthenticated: 60/hour; set GITHUB_TOKEN for 5000)'}`
+        : `${path.split('?')[0]} ${res.status}`,
+    )
+  }
   return (await res.json()) as T
 }
 
@@ -412,9 +419,10 @@ async function main() {
     gh.note = gh.total > 0 ? `signal lost — holding last good sample (${previous?.generatedAt?.slice(0, 10) ?? 'unknown'})` : 'signal lost — no prior sample held'
   }
 
+  const heldGhEvents = (previous?.events ?? []).filter((e) => e.channel === 'github')
   try {
     const feed = await ghEvents()
-    events.push(...feed.events)
+    const fresh: LogEvent[] = [...feed.events]
     const fromFeed = feed.events.filter((e) => e.kind === 'commit').length
     log('ch0', `feed ok · ${feed.events.length} entries · ${feed.pushed.length} repos pushed`)
 
@@ -422,11 +430,22 @@ async function main() {
     // from the repositories it named instead.
     if (fromFeed === 0 && feed.pushed.length > 0) {
       const commits = await ghRepoCommits(feed.pushed.slice(0, 6))
-      events.push(...commits)
+      fresh.push(...commits)
       log('ch0', `commits ok · ${commits.length} messages from ${Math.min(6, feed.pushed.length)} repos`)
+    }
+
+    if (fresh.length > 0) {
+      events.push(...fresh)
+    } else if (heldGhEvents.length > 0) {
+      events.push(...heldGhEvents)
+      log('ch0', `feed empty · holding ${heldGhEvents.length} events from the last good sample`)
     }
   } catch (err) {
     log('ch0', `feed unavailable · ${(err as Error).message}`)
+    if (heldGhEvents.length > 0) {
+      events.push(...heldGhEvents)
+      log('ch0', `holding ${heldGhEvents.length} events from the last good sample`)
+    }
   }
 
   /* channel 1 */

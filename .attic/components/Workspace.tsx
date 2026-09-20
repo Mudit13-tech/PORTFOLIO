@@ -139,7 +139,7 @@ function Tiles({ snapshot, attach }: { snapshot: Snapshot; attach?: string }) {
       </main>
       <CommandPalette />
       <HelpOverlay />
-      <StatusBar days={snapshot.days} />
+      <StatusBar days={snapshot.days} asOf={snapshot.generatedAt} />
       <Boot snapshot={snapshot} />
     </>
   )

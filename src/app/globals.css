@@ -15,7 +15,12 @@
   --c-panel: #0e1417;
   --c-wire: #1c2a2f;
   --c-text: #c9d6d3;
-  --c-dim: #5e7377;
+  /* The brief specifies #5E7377. At 11px on the pane fill that measures
+   * 3.71:1, which fails WCAG AA and costs the accessibility score the same
+   * brief asks to hold above 95. This is that hue lightened by the least
+   * amount that clears 4.5:1 (it measures 4.74:1). Revert to #5e7377 for the
+   * exact specified value and accept the contrast failure. */
+  --c-dim: #718488;
   --c-live: #e8b33c;
   --c-cool: #52b8c4;
   --c-alert: #ff5f4a;

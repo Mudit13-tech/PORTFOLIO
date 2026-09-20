@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { asOfDay } from '@/lib/date'
 import { CELL, GUT, U } from '@/lib/lattice'
 import type { Day } from '@/lib/types'
 
@@ -11,12 +12,12 @@ import type { Day } from '@/lib/types'
  * above it column for column — it is the same ruler, read at a different
  * length.
  */
-export function Sparkline({ days, span = 30 }: { days: Day[]; span?: number }) {
+export function Sparkline({ days, asOf, span = 30 }: { days: Day[]; asOf: string; span?: number }) {
   const slice = useMemo(() => {
-    const today = Date.now()
-    const past = days.filter((d) => new Date(`${d.date}T00:00:00Z`).getTime() <= today)
+    const until = asOfDay(asOf, days[0].date, days[days.length - 1].date)
+    const past = days.filter((d) => new Date(`${d.date}T00:00:00Z`).getTime() <= until)
     return past.slice(-span)
-  }, [days, span])
+  }, [days, asOf, span])
 
   const w = span * U - GUT
   const h = CELL

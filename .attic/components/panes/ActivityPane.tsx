@@ -77,7 +77,7 @@ export function ActivityPane({ snapshot, seq }: { snapshot: Snapshot; seq: numbe
         />
       ) : (
         <div className="flex flex-col gap-1">
-          <Heatmap days={snapshot.days} />
+          <Heatmap days={snapshot.days} asOf={snapshot.generatedAt} />
 
           <div className="rule flex flex-col gap-1 pt-1">
             <ChannelLine channel={gh} ramp={GH} corner="ul" />

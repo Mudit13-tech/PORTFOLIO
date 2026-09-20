@@ -4,9 +4,21 @@ import { profile } from '~/content/profile'
 import { Idle, Pane } from '../Pane'
 import type { Snapshot } from '@/lib/types'
 
-function Line({ label, children }: { label: string; children: React.ReactNode }) {
+/**
+ * `tap` gives the row a two-cell height so a link inside it clears the 24px
+ * minimum touch target. Text-only rows stay one cell tall.
+ */
+function Line({
+  label,
+  children,
+  tap,
+}: {
+  label: string
+  children: React.ReactNode
+  tap?: boolean
+}) {
   return (
-    <p className="flex gap-1 text-xs">
+    <p className="flex items-center gap-1 text-xs" style={tap ? { minHeight: 26 } : undefined}>
       <span className="shrink-0 text-dim" style={{ width: 39 }}>
         {label}
       </span>
@@ -35,28 +47,28 @@ export function WhoamiPane({ snapshot, seq }: { snapshot: Snapshot; seq: number 
           <Line label="field">{profile.discipline}</Line>
           <Line label="at">{profile.institution}</Line>
           {profile.location ? <Line label="loc">{profile.location}</Line> : null}
-          <Line label="ch0">
+          <Line tap label="ch0">
             <a href={`https://github.com/${profile.github}`} rel="me noreferrer" target="_blank">
               github/{profile.github}
             </a>
           </Line>
-          <Line label="ch1">
+          <Line tap label="ch1">
             <a href={`https://leetcode.com/u/${profile.leetcode}/`} rel="me noreferrer" target="_blank">
               leetcode/{profile.leetcode}
             </a>
           </Line>
           {profile.email ? (
-            <Line label="mail">
+            <Line tap label="mail">
               <a href={`mailto:${profile.email}`}>{profile.email}</a>
             </Line>
           ) : null}
           {profile.cv ? (
-            <Line label="cv">
+            <Line tap label="cv">
               <a href={profile.cv}>{profile.cv.replace(/^\//, '')}</a>
             </Line>
           ) : null}
           {profile.elsewhere.map((l) => (
-            <Line key={l.href} label="also">
+            <Line tap key={l.href} label="also">
               <a href={l.href} rel="me noreferrer" target="_blank">
                 {l.label}
               </a>

@@ -16,7 +16,7 @@ import {
   WEEKS,
 } from '@/lib/lattice'
 import { level, scales, type Level } from '@/lib/ramp'
-import { longDate, monthShort, parseIso, weekdayLong } from '@/lib/date'
+import { asOfDay, longDate, monthShort, parseIso, weekdayLong } from '@/lib/date'
 import { setReadout, clearReadout } from '@/lib/readout'
 import { useQuiet, useWorkspace } from '@/lib/workspace'
 import type { Day } from '@/lib/types'
@@ -93,15 +93,18 @@ const Measured = memo(function Measured({ cells }: { cells: Cell[] }) {
 
 /* -------------------------------------------------------------------- view */
 
-export function Heatmap({ days }: { days: Day[] }) {
+export function Heatmap({ days, asOf }: { days: Day[]; asOf: string }) {
   const { state, dispatch } = useWorkspace()
   const quiet = useQuiet()
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const todayMs = useMemo(() => {
-    const n = new Date()
-    return Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate())
-  }, [])
+  /* The sampling instant, not the viewing instant: a day the snapshot never
+     covered stays uncovered, and the grid renders identically on the server
+     and in the browser. */
+  const todayMs = useMemo(
+    () => asOfDay(asOf, days[0].date, days[days.length - 1].date),
+    [asOf, days],
+  )
 
   const cells = useMemo(() => build(days, todayMs), [days, todayMs])
   const months = useMemo(() => monthTicks(cells), [cells])
@@ -327,12 +330,31 @@ export function Heatmap({ days }: { days: Day[] }) {
   const measuredLayer = useMemo(() => <Measured cells={cells} />, [cells])
 
   return (
-    <div
-      ref={scrollRef}
-      className="overflow-x-auto overflow-y-hidden"
-      style={{ scrollbarWidth: 'thin' }}
-    >
-      <div className="relative" style={{ width: GRID_W, height: GRID_H }}>
+    <div className="relative">
+      {/* Frozen weekday column. It sits outside the scroller so the rows stay
+          labelled once a narrow viewport scrolls the calendar. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 top-0 z-10 bg-panel"
+        style={{ width: LABEL_W, height: GRID_H }}
+      >
+        {[1, 3, 5].map((d) => (
+          <span
+            key={d}
+            className="absolute text-dim"
+            style={{ top: LABEL_H + d * U, fontSize: 11, lineHeight: `${CELL}px` }}
+          >
+            {weekdayLong(d).slice(0, 3)}
+          </span>
+        ))}
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto overflow-y-hidden"
+        style={{ scrollbarWidth: 'thin' }}
+      >
+        <div className="relative" style={{ width: GRID_W, height: GRID_H }}>
         <svg
           width={GRID_W}
           height={GRID_H}
@@ -367,11 +389,6 @@ export function Heatmap({ days }: { days: Day[] }) {
             {months.map((m) => (
               <text key={`${m.label}-${m.x}`} x={m.x} y={LABEL_H - GUT * 3}>
                 {m.label}
-              </text>
-            ))}
-            {[1, 3, 5].map((d) => (
-              <text key={d} x={0} y={LABEL_H + d * U + CELL - GUT}>
-                {weekdayLong(d).slice(0, 3)}
               </text>
             ))}
           </g>
@@ -433,6 +450,7 @@ export function Heatmap({ days }: { days: Day[] }) {
               })}
             </div>
           ))}
+        </div>
         </div>
       </div>
     </div>

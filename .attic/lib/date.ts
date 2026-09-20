@@ -31,3 +31,26 @@ export function longDate(s: string): string {
 export function ageDays(t: string, now: number): number {
   return (new Date(t).getTime() - now) / DAY_MS
 }
+
+/**
+ * The instant a snapshot should be read "as of", in UTC day precision and
+ * guaranteed to sit inside the window it describes.
+ *
+ * The checked-in fallback carries an epoch timestamp, and a snapshot can in
+ * principle be older or newer than the days it holds. Clamping here means no
+ * caller has to decide what an out-of-range sampling time means, and the grid
+ * is never rendered entirely as "not yet sampled".
+ */
+export function asOfDay(asOf: string, first: string, last: string): number {
+  const lo = parseIso(first).getTime()
+  const hi = parseIso(last).getTime()
+  const t = new Date(asOf).getTime()
+  if (!Number.isFinite(t)) return hi
+  const day = Date.UTC(
+    new Date(t).getUTCFullYear(),
+    new Date(t).getUTCMonth(),
+    new Date(t).getUTCDate(),
+  )
+  if (day < lo || day > hi) return hi
+  return day
+}

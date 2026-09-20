@@ -20,7 +20,9 @@ export function Key({
       type="button"
       onClick={onClick}
       title={title}
-      aria-label={title}
+      /* A word is its own accessible name; only the symbol keys need naming,
+         and overriding "shuffle" with "new random array" made the two disagree. */
+      aria-label={typeof children === 'string' && /[a-z]/i.test(children) ? undefined : title}
       aria-pressed={active}
       disabled={disabled}
       className="border border-wire px-1 text-xs text-dim transition-colors hover:border-live hover:text-live disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-wire disabled:hover:text-dim aria-pressed:border-live aria-pressed:text-live"

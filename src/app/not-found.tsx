@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { profile } from '~/content/profile'
 
@@ -10,8 +11,23 @@ import { profile } from '~/content/profile'
  * it gets reported the way any other channel fault would be.
  */
 export default function NotFound() {
+  const router = useRouter()
   const [addr, setAddr] = useState('')
+
   useEffect(() => setAddr(window.location.pathname), [])
+
+  // The status bar offers this key, so the key has to work.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' || e.metaKey || e.ctrlKey || e.altKey) return
+      const t = e.target as HTMLElement | null
+      if (t && (t.tagName === 'A' || t.tagName === 'BUTTON' || t.tagName === 'INPUT')) return
+      e.preventDefault()
+      router.push('/')
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [router])
 
   return (
     <div className="min-h-dvh p-1" style={{ paddingBottom: 39 }}>

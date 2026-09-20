@@ -1,0 +1,54 @@
+# Daily resample.
+#
+# The site renders from a committed snapshot and never fetches in the browser,
+# so keeping it current is this job's only responsibility. A commit here is
+# what triggers the next deploy; if neither channel moved, nothing is committed
+# and nothing is rebuilt.
+name: sample
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sample
+  cancel-in-progress: false
+
+jobs:
+  sample:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Sample both channels
+        env:
+          GITHUB_USERNAME: ${{ vars.GH_USERNAME || 'Mudit13-tech' }}
+          LEETCODE_USERNAME: ${{ vars.LC_USERNAME || 'Mudit1306' }}
+          # GH_PAT is optional. Without it the run uses the workflow's own
+          # token, and if that cannot read the contributions collection the
+          # script falls back to the public contributions document.
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+        run: npm run sync
+
+      - name: Commit only if the sample changed
+        run: |
+          if git diff --quiet -- data/activity.json; then
+            echo "channels unchanged — nothing to commit"
+            exit 0
+          fi
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/activity.json
+          git commit -m "daq: resample channels ($(date -u +%Y-%m-%d))"
+          git push

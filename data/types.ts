@@ -1,0 +1,173 @@
+/**
+ * The five content schemas.
+ *
+ * Every count rendered anywhere in the system is `array.length` over one of
+ * these. Nothing in a component may type a number that describes the content —
+ * if the boot screen says six projects, it is because `projects.length === 6`.
+ *
+ * Anything not traceable to a public source is either absent or rendered as an
+ * honest empty state. The interface is allowed to say "not recorded". It is not
+ * allowed to guess.
+ */
+
+export type AppId =
+  | 'projects'
+  | 'failures'
+  | 'skills'
+  | 'experiments'
+  | 'monitor'
+  | 'about'
+  | 'contact'
+  | 'terminal'
+  | 'bin'
+
+export type ProjectStatus = 'shipped' | 'wip' | 'archived'
+
+export interface Project {
+  /** Stable slug — becomes /projects/<id>. */
+  id: string
+  name: string
+  /** What kind of thing it is: "Android + iOS application", "Django service". */
+  type: string
+  status: ProjectStatus
+  /** Year of the first commit. */
+  year: number
+  role: string
+  stack: string[]
+  /** Who it was for and what was broken. One paragraph. */
+  problem: string
+  /** Architecture in plain language, naming real modules. */
+  architecture: string
+  /** First person, specific components. Never "worked on the frontend". */
+  contribution: string
+  /** Two sentences. The section that reads as senior. */
+  retrospective: string | null
+  /** Ids into failures.ts — the cross-link that makes the failure app earned. */
+  failureIds: string[]
+  links: { source: string | null; live: string | null }
+  /** Measured facts, each carrying the source that backs it. */
+  evidence: Evidence[]
+  featured: boolean
+}
+
+/** One measured claim and where it came from, so no number is ever bare. */
+export interface Evidence {
+  label: string
+  value: string
+  source: string
+}
+
+export type FailureStatus = 'failed' | 'broken' | 'data-loss' | 'abandoned' | 'never-shipped'
+export type Severity = 'low' | 'medium' | 'high'
+
+export interface Failure {
+  id: string
+  title: string
+  /** Id into projects.ts, or null when the failure stands alone. */
+  projectId: string | null
+  status: FailureStatus
+  resolved: boolean
+  /** ISO, YYYY-MM-DD. */
+  date: string
+  severity: Severity
+  /** Honest units. "6 hours" convinces; "days of anguish" does not. */
+  cost: { value: number; unit: string } | null
+  whatHappened: string
+  cause: string
+  /** Ordered investigation steps. */
+  investigation: string[]
+  fix: string
+  lesson: string
+  /** The commit that carries the fix. This is the receipt. */
+  commit: { sha: string; message: string; repo: string } | null
+  /**
+   * False until Mudit has read the report and confirmed it. Unconfirmed reports
+   * render with a visible "drafted from commit history" marker rather than
+   * passing themselves off as written testimony.
+   */
+  confirmed: boolean
+}
+
+export type SkillCategory = 'frontend' | 'backend' | 'tooling' | 'language'
+
+export interface Skill {
+  id: string
+  name: string
+  category: SkillCategory
+  /**
+   * 1-4. Usage FREQUENCY, not mastery — the label in the UI says so. Derived
+   * from how many shipped projects the technology actually appears in.
+   */
+  frequency: number
+  /** Year of the earliest repository that contains it. */
+  firstUsed: number
+  projectIds: string[]
+  failureIds: string[]
+  adjacent: string[]
+  /** Bytes of this language across all public repositories, when measurable. */
+  bytes: number | null
+}
+
+export interface Experiment {
+  id: string
+  name: string
+  category: string
+  year: number
+  tested: string
+  why: string
+  result: string
+  learned: string
+  source: string | null
+}
+
+export interface BinItem {
+  id: string
+  name: string
+  kind: 'file' | 'folder'
+  meta: string
+  /** Three sentences maximum. */
+  story: string
+}
+
+export interface Profile {
+  name: string
+  role: string
+  discipline: string
+  institution: string
+  location: string | null
+  status: string | null
+  /** Dated, so a stale "currently" is visible rather than silent. */
+  currently: { items: string[]; asOf: string }
+  interests: string[]
+  /** Where the human voice is allowed to show through. */
+  process: string
+  links: {
+    github: string
+    leetcode: string
+    /** null renders as a designed empty state, never as a dead link. */
+    resume: string | null
+    email: string | null
+    linkedin: string | null
+  }
+}
+
+export interface ContactChannel {
+  id: string
+  label: string
+  value: string | null
+  href: string | null
+  /** Shown in place of a broken link when value is null. */
+  pending: string
+}
+
+/** A measured system reading with the method that produced it. */
+export interface Reading {
+  id: string
+  label: string
+  value: number
+  display: string
+  /** How it was measured. Rendered next to the number. */
+  source: string
+  /** Where clicking the row goes. */
+  href: string | null
+}

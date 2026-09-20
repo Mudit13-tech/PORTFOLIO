@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
 import { ageDays } from '@/lib/date'
+import { useNow } from '@/hooks/useNow'
 import type { EventKind, LogEvent, Snapshot } from '@/lib/types'
 import { Fault, Idle, Pane } from '../Pane'
 
@@ -62,7 +62,7 @@ function Row({ e, now }: { e: LogEvent; now: number }) {
 }
 
 export function LogPane({ snapshot, seq }: { snapshot: Snapshot; seq: number }) {
-  const now = useMemo(() => Date.now(), [])
+  const now = useNow(snapshot.generatedAt)
   const events = snapshot.events
   const offline = snapshot.channels.every((c) => c.state === 'offline')
 
