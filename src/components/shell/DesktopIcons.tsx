@@ -50,7 +50,7 @@ export function DesktopIcons() {
       {APP_ORDER.map((id, i) => {
         const count = countFor(id)
         return (
-          <li key={id}>
+          <li key={id} className="anim-icon" style={{ ['--i' as string]: i }}>
             <a
               href={APP_PATH[id]}
               tabIndex={i === active ? 0 : -1}
@@ -59,10 +59,13 @@ export function DesktopIcons() {
               className="desk-icon flex flex-col items-center gap-1.5 w-[96px] px-1 py-2.5 rounded-lg"
             >
               <AppIcon id={id} size={50} />
-              {/* APP_TITLE has no spaces to break on, so the label is told it
-                  may break anywhere rather than be allowed to widen the column
-                  and push the whole grid off the right edge of the screen. */}
-              <span className="desk-label mono text-[10px] leading-[1.2] text-center text-primary [overflow-wrap:anywhere]">
+              {/* A label with no spaces in it may break anywhere rather than
+                  widen the column and push the grid off the right edge — and
+                  it reserves two lines whether it uses them or not, so one
+                  long name cannot make its row taller than the others. The
+                  fallback font on a cold load is wider than the one we ship,
+                  and the grid has to survive that. */}
+              <span className="desk-label mono text-[10px] leading-[1.15] text-center text-primary [overflow-wrap:anywhere] min-h-[2.3em] flex items-start justify-center">
                 {APP_LABEL[id]}
               </span>
               {/* The count line is always present, even when empty, so every

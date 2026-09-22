@@ -43,7 +43,7 @@ export const WEEKS = Math.ceil(activity.days.length / DOW)
 /** 0 = nothing happened. 1-4 index the ramp. */
 export type Level = 0 | 1 | 2 | 3 | 4
 
-export type ChannelId = 'commits' | 'solved'
+export type ChannelId = 'commits' | 'submissions'
 
 /**
  * Cut points for a ramp, taken from that channel's own distribution rather
@@ -127,7 +127,7 @@ function build(
   href: string,
   rampVar: string,
 ): Channel {
-  const count = (d: ActivityDay) => (id === 'commits' ? d.commits : d.solved)
+  const count = (d: ActivityDay) => (id === 'commits' ? d.commits : d.submissions)
   const cuts = quartiles(activity.days.map(count))
   const { longest, endedOn } = streaks((d) => count(d) > 0)
 
@@ -169,17 +169,17 @@ export const channels: Record<ChannelId, Channel> = {
     'https://github.com/Mudit13-tech',
     'gh',
   ),
-  solved: build(
-    'solved',
+  submissions: build(
+    'submissions',
     'LeetCode',
-    'problems solved',
-    'LeetCode submission calendar',
+    'submissions',
+    'LeetCode submission calendar — submissions, not distinct problems',
     'https://leetcode.com/u/Mudit1306/',
     'lc',
   ),
 }
 
-export const channelList: Channel[] = [channels.commits, channels.solved]
+export const channelList: Channel[] = [channels.commits, channels.submissions]
 
 /** Month ticks: the first column of each month, skipping the crowded last two. */
 export const monthTicks = (() => {
@@ -202,30 +202,30 @@ export const activityStats = {
   to: activity.to,
   days: activity.days.length,
   commits: channels.commits.total,
-  solved: channels.solved.total,
+  submissions: channels.submissions.total,
   /** Days with something on either channel. */
-  activeDays: activity.days.filter((d) => d.commits > 0 || d.solved > 0).length,
+  activeDays: activity.days.filter((d) => d.commits > 0 || d.submissions > 0).length,
   busiest: activity.days.reduce((b, d) =>
-    d.commits + d.solved > b.commits + b.solved ? d : b,
+    d.commits + d.submissions > b.commits + b.submissions ? d : b,
   ),
-  ...streaks((d) => d.commits > 0 || d.solved > 0),
+  ...streaks((d) => d.commits > 0 || d.submissions > 0),
 } as const
 
 /** Monthly totals — the table alternative to the grids, for anyone reading
  * them with a screen reader or with colour turned off. */
 export const byMonth = (() => {
-  const map = new Map<string, { label: string; commits: number; solved: number; days: number }>()
+  const map = new Map<string, { label: string; commits: number; submissions: number; days: number }>()
   for (const d of activity.days) {
     const key = d.date.slice(0, 7)
     const entry = map.get(key) ?? {
       label: `${MONTHS_LONG[Number(d.date.slice(5, 7)) - 1]} ${d.date.slice(0, 4)}`,
       commits: 0,
-      solved: 0,
+      submissions: 0,
       days: 0,
     }
     entry.commits += d.commits
-    entry.solved += d.solved
-    if (d.commits > 0 || d.solved > 0) entry.days += 1
+    entry.submissions += d.submissions
+    if (d.commits > 0 || d.submissions > 0) entry.days += 1
     map.set(key, entry)
   }
   return [...map.entries()].map(([key, v]) => ({ key, ...v }))

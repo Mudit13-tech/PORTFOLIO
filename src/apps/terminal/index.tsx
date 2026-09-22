@@ -30,6 +30,8 @@ export function TerminalApp() {
   ])
   const [value, setValue] = useState('')
   const [focused, setFocused] = useState(false)
+  /** Which column the caret is drawn at — the field's own selection point. */
+  const [col, setCol] = useState(0)
   const [cwd, setCwd] = useState('/')
   const history = useRef<string[]>([])
   const cursor = useRef(-1)
@@ -77,11 +79,16 @@ export function TerminalApp() {
     [api, cwd],
   )
 
+  const syncCol = (e: React.SyntheticEvent<HTMLInputElement>) => {
+    setCol(e.currentTarget.selectionStart ?? e.currentTarget.value.length)
+  }
+
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault()
       submit(value)
       setValue('')
+      setCol(0)
       return
     }
     if (e.key === 'Tab') {
@@ -90,7 +97,9 @@ export function TerminalApp() {
       if (options.length === 1) {
         const parts = value.split(/\s+/)
         parts[parts.length - 1] = options[0]
-        setValue(parts.join(' '))
+        const completed = parts.join(' ')
+        setValue(completed)
+        setCol(completed.length)
       } else if (options.length > 1) {
         setLines((prev) => [...prev, { kind: 'out', text: options.join('  ') }])
       }
@@ -99,13 +108,17 @@ export function TerminalApp() {
     if (e.key === 'ArrowUp') {
       e.preventDefault()
       cursor.current = Math.min(cursor.current + 1, history.current.length - 1)
-      setValue(history.current[cursor.current] ?? '')
+      const recalled = history.current[cursor.current] ?? ''
+      setValue(recalled)
+      setCol(recalled.length)
       return
     }
     if (e.key === 'ArrowDown') {
       e.preventDefault()
       cursor.current = Math.max(cursor.current - 1, -1)
-      setValue(cursor.current === -1 ? '' : (history.current[cursor.current] ?? ''))
+      const next = cursor.current === -1 ? '' : (history.current[cursor.current] ?? '')
+      setValue(next)
+      setCol(next.length)
     }
   }
 
@@ -143,27 +156,42 @@ export function TerminalApp() {
           <span className="sr-only">{prompt}</span>
           <Prompt cwd={cwd} />
         </label>
-        <span className="relative flex-1">
+        <span className="relative flex-1 overflow-hidden">
           <input
             id="term-input"
             ref={input}
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => {
+              setValue(e.target.value)
+              setCol(e.target.selectionStart ?? e.target.value.length)
+            }}
             onKeyDown={onKeyDown}
-            onFocus={() => setFocused(true)}
+            onKeyUp={syncCol}
+            onSelect={syncCol}
+            onClick={syncCol}
+            onFocus={(e) => {
+              setFocused(true)
+              syncCol(e)
+            }}
             onBlur={() => setFocused(false)}
             spellCheck={false}
             autoComplete="off"
             autoCapitalize="off"
-            className="w-full bg-transparent outline-none text-primary caret-transparent"
+            className="w-full bg-transparent text-primary caret-transparent"
             aria-label="Terminal input"
           />
-          {/* Drawn at the column the text ends on. The field is monospace, so
-              `ch` is exact — and it shows only while focused, because a
-              blinking cursor in a window you are not typing into is a lie. */}
-          {focused && (
-            <span className="term-caret" style={{ left: `${value.length}ch` }} aria-hidden="true" />
-          )}
+          {/* The caret rides in normal flow behind an invisible copy of the
+              text to its left, so the browser measures its position instead of
+              this component guessing at it. It shows only while focused,
+              because a blinking cursor in a window you are not typing into is
+              a lie. */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 flex items-center whitespace-pre"
+          >
+            <span className="invisible">{value.slice(0, col)}</span>
+            {focused && <span className="term-caret" />}
+          </span>
         </span>
       </div>
     </div>

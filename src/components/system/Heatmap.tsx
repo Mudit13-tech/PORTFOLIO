@@ -218,7 +218,7 @@ function Readout({ cell, channel }: { cell: Cell; channel: Channel }) {
           <span style={{ color: channel.ramp[4] }}>
             {cell.count} {channel.unit}
           </span>
-          {channel.id === 'solved' && cell.day.hardest && (
+          {channel.id === 'submissions' && cell.day.hardest && (
             <span className="text-tertiary"> · hardest {cell.day.hardest}</span>
           )}
         </>
@@ -281,7 +281,7 @@ export function ActivityTable() {
           <tr className="text-tertiary text-left">
             <th scope="col" className="font-normal">Month</th>
             <th scope="col" className="font-normal text-right">Contributions</th>
-            <th scope="col" className="font-normal text-right">Solved</th>
+            <th scope="col" className="font-normal text-right">Submissions</th>
             <th scope="col" className="font-normal text-right">Active days</th>
           </tr>
         </thead>
@@ -290,7 +290,7 @@ export function ActivityTable() {
             <tr key={m.key} className="border-t border-subtle/50">
               <th scope="row" className="font-normal text-left">{m.label}</th>
               <td className="text-right tabular-nums">{m.commits}</td>
-              <td className="text-right tabular-nums">{m.solved}</td>
+              <td className="text-right tabular-nums">{m.submissions}</td>
               <td className="text-right tabular-nums">{m.days}</td>
             </tr>
           ))}

@@ -33,8 +33,8 @@ export function MobileShell() {
         style={{ paddingTop: TOP_BAR_H + 8, paddingBottom: 104 }}
       >
         <ul className="grid grid-cols-4 gap-y-4 px-4 pt-2" aria-label="Applications">
-          {APP_ORDER.map((id) => (
-            <li key={id} className="flex justify-center">
+          {APP_ORDER.map((id, i) => (
+            <li key={id} className="anim-icon flex justify-center" style={{ ['--i' as string]: i }}>
               <a
                 href={APP_PATH[id]}
                 className="desk-icon flex flex-col items-center gap-1.5 w-[78px] min-h-[44px] pt-1 pb-1.5 rounded-xl"

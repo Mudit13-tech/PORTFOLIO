@@ -137,11 +137,115 @@ const PATHS: Record<GlyphName, React.ReactNode> = {
 }
 
 /* ------------------------------------------------------------- app tiles
- * Nine applications, nine hues from one family. The tile carries the colour;
- * the glyph inside it carries the meaning. Never the other way round — an icon
- * that can only be told apart by its colour is unusable to a colour-blind
- * visitor and invisible in forced-colors mode.
+ * An application icon is not the interface glyph scaled up.
+ *
+ * The glyphs above are hairline marks built to sit beside 12px text. Blown up
+ * to half an icon they read as scratches, so the tiles get their own artwork:
+ * solid shapes in two weights of the same white, which is what gives an icon a
+ * silhouette you can recognise at dock size and in a blur.
+ *
+ * Two tones, never more. A third makes the icon a picture, and a picture at
+ * 44px is mud.
  */
+const APP_ART: Partial<Record<GlyphName, React.ReactNode>> = {
+  /* A stack of windows. */
+  projects: (
+    <>
+      <rect x="6" y="3.2" width="12" height="3.2" rx="1.6" opacity="0.45" />
+      <rect x="4.4" y="7.2" width="15.2" height="3.4" rx="1.7" opacity="0.7" />
+      <rect x="2.8" y="11.6" width="18.4" height="9.2" rx="2.6" />
+    </>
+  ),
+  /* A fault, with the bar and dot that every warning has ever had. */
+  failures: (
+    <>
+      <path
+        d="M10.28 3.3a2 2 0 0 1 3.44 0l8.1 14.05a2 2 0 0 1-1.72 3H3.9a2 2 0 0 1-1.72-3z"
+        opacity="0.5"
+      />
+      <path d="M10.9 8.4h2.2l-.35 6.4h-1.5z" />
+      <circle cx="12" cy="17.4" r="1.2" />
+    </>
+  ),
+  /* A cut stone: the lit facet is what makes it read as faceted. */
+  skills: (
+    <>
+      <path d="M12 2.4 21.6 12 12 21.6 2.4 12z" opacity="0.5" />
+      <path d="M12 2.4 21.6 12H12z" />
+    </>
+  ),
+  /* A flask with something still in it. */
+  experiments: (
+    <>
+      <path
+        d="M9.4 2.6h5.2v1.9h-1.1v4.9l5.1 9a2.2 2.2 0 0 1-1.9 3.3H7.3a2.2 2.2 0 0 1-1.9-3.3l5.1-9V4.5H9.4z"
+        opacity="0.45"
+      />
+      <path d="M8.35 14.2h7.3l3 5.3a1.5 1.5 0 0 1-1.3 2.2H6.65a1.5 1.5 0 0 1-1.3-2.2z" />
+      <circle cx="10.4" cy="17.6" r="0.95" opacity="0.5" />
+      <circle cx="13.6" cy="19.1" r="0.7" opacity="0.5" />
+    </>
+  ),
+  /* A display reading something. */
+  monitor: (
+    <>
+      <rect x="2.4" y="3.6" width="19.2" height="13.4" rx="2.6" opacity="0.45" />
+      <rect x="8.4" y="19.2" width="7.2" height="2" rx="1" opacity="0.8" />
+      <path
+        d="M5.4 11.9h2.3l1.8-4 2.5 6.6 1.7-3.6h4.9"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </>
+  ),
+  about: (
+    <>
+      <circle cx="12" cy="8" r="3.9" />
+      <path d="M3.6 21.2a8.4 8.4 0 0 1 16.8 0z" opacity="0.5" />
+    </>
+  ),
+  contact: (
+    <>
+      <rect x="2.4" y="4.6" width="19.2" height="14.8" rx="2.8" opacity="0.5" />
+      <path
+        d="M3.6 6.6 12 13.1l8.4-6.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </>
+  ),
+  /* A prompt and a cursor, which is the only thing a terminal icon needs. */
+  terminal: (
+    <>
+      <rect x="2.2" y="3.6" width="19.6" height="16.8" rx="3" opacity="0.4" />
+      <path
+        d="m6.6 9 3.5 3-3.5 3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <rect x="12.4" y="14.1" width="5.6" height="1.9" rx="0.95" />
+    </>
+  ),
+  bin: (
+    <>
+      <path d="M4.8 7h14.4l-1.15 12.1a2.3 2.3 0 0 1-2.29 2.1H8.24a2.3 2.3 0 0 1-2.29-2.1z" opacity="0.5" />
+      <rect x="2.8" y="4.6" width="18.4" height="2.5" rx="1.25" />
+      <rect x="9" y="2.2" width="6" height="2.6" rx="1.1" opacity="0.75" />
+      <rect x="9.35" y="10" width="1.7" height="7.4" rx="0.85" opacity="0.85" />
+      <rect x="12.95" y="10" width="1.7" height="7.4" rx="0.85" opacity="0.85" />
+    </>
+  ),
+}
+
 export function AppIcon({
   id,
   size = 40,
@@ -151,6 +255,9 @@ export function AppIcon({
   size?: number
   className?: string
 }) {
+  const art = APP_ART[id]
+  const inner = Math.round(size * 0.58)
+
   return (
     <span
       className={`tile grid place-items-center shrink-0 ${className}`}
@@ -162,14 +269,29 @@ export function AppIcon({
       }}
       aria-hidden="true"
     >
-      {/* Heavier than the interface stroke. A 1.5px line on a 44px tile reads
-          as a scratch; the glyph has to carry the icon at dock size. */}
-      <Glyph
-        name={id}
-        size={Math.round(size * 0.5)}
-        strokeWidth={1.75}
-        className="text-[rgb(255_255_255_/_0.95)]"
-      />
+      {art ? (
+        <svg
+          width={inner}
+          height={inner}
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          // Set here rather than inherited: the strokes in this artwork use
+          // currentColor too, and inheriting it would paint them in the desk
+          // label's colour instead of the icon's.
+          style={{ color: 'rgb(255 255 255 / 0.96)' }}
+          aria-hidden="true"
+          focusable="false"
+        >
+          {art}
+        </svg>
+      ) : (
+        <Glyph
+          name={id}
+          size={Math.round(size * 0.5)}
+          strokeWidth={1.75}
+          className="text-[rgb(255_255_255_/_0.95)]"
+        />
+      )}
     </span>
   )
 }

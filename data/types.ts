@@ -185,9 +185,16 @@ export interface ActivityDay {
   date: string
   /** GitHub contributions recorded that day. */
   commits: number
-  /** LeetCode problems accepted that day. */
-  solved: number
-  /** Hardest problem solved that day, when one was. */
+  /**
+   * LeetCode submissions that day, from the submission calendar.
+   *
+   * Submissions, not distinct problems: three accepted attempts at one
+   * question are three here. The count of problems actually solved is a
+   * different, smaller number and lives in `meta.readings.solved` — labelling
+   * this one "problems solved" would inflate it by more than double.
+   */
+  submissions: number
+  /** Hardest difficulty attempted that day, when anything was. */
   hardest: Difficulty | null
 }
 

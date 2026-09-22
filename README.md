@@ -57,7 +57,12 @@ effect.
 
 **One calendar per source, never one grid for both.** GitHub contributions and
 LeetCode submissions get a heatmap each, because they are measured in different
-units and adding them produces a number that means nothing. Each ramp is
+units and adding them produces a number that means nothing. The LeetCode
+channel counts **submissions**, not distinct problems — the snapshot's column is
+named `solved` and it is not; three accepted attempts at one question are three
+there. The renaming happens once, where the file is read, so nothing downstream
+can repeat the claim. Problems actually solved is a different, smaller number
+(166) and the system monitor lists it separately. Each ramp is
 single-hue and steps from its own channel's quartiles over the sampled window —
 so the colour reads as busy-for-this-person rather than
 busy-against-an-invented-ceiling, and the legend prints the actual cut points.
