@@ -1,11 +1,16 @@
 import { MAX_WINDOWS, Z_BASE } from './constants'
 import { cascade, clampSize, clampToViewport, maximizedRect, renormalise, snapRect } from './geometry'
+import * as motion from './motion'
 import { loadLayout, saveLayout } from './persist'
 import type { AppId, Rect, SystemApi, SystemState, Viewport, WindowState } from './types'
 
 /**
  * The system store. Plain subscribe/getState — no React in this file, so every
  * command can be reasoned about (and tested) without rendering anything.
+ *
+ * Close and minimize go through `motion.exit`, which plays the window out and
+ * then makes the change. Without a window on screen to animate, it makes the
+ * change at once, so the state machine never waits on an animation.
  */
 
 export interface Store extends SystemApi {
@@ -101,8 +106,10 @@ export function createStore(): Store {
     },
 
     open(id, payload = null, opts) {
+      motion.settle(id)
       const existing = find(id)
       if (existing) {
+        if (!existing.minimized && state.focusOrder.at(-1) === id) motion.nudge(id)
         const { z, nextZ } = raise(id)
         set({
           windows: state.windows.map((w) =>
@@ -150,13 +157,17 @@ export function createStore(): Store {
     },
 
     close(id) {
-      set({
-        windows: state.windows.filter((w) => w.id !== id),
-        focusOrder: state.focusOrder.filter((x) => x !== id),
-      })
+      if (!find(id)) return
+      motion.exit(id, 'close', () =>
+        set({
+          windows: state.windows.filter((w) => w.id !== id),
+          focusOrder: state.focusOrder.filter((x) => x !== id),
+        }),
+      )
     },
 
     focus(id) {
+      motion.settle(id)
       if (state.focusOrder.at(-1) === id && !find(id)?.minimized) return
       const { z, nextZ } = raise(id)
       const r = renormalise(
@@ -167,10 +178,14 @@ export function createStore(): Store {
     },
 
     minimize(id) {
-      set({
-        windows: state.windows.map((w) => (w.id === id ? { ...w, minimized: true } : w)),
-        focusOrder: state.focusOrder.filter((x) => x !== id),
-      })
+      const win = find(id)
+      if (!win || win.minimized) return
+      motion.exit(id, 'minimize', () =>
+        set({
+          windows: state.windows.map((w) => (w.id === id ? { ...w, minimized: true } : w)),
+          focusOrder: state.focusOrder.filter((x) => x !== id),
+        }),
+      )
     },
 
     toggleMaximize(id) {

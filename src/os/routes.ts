@@ -72,18 +72,19 @@ export const APP_TITLE: Record<AppId, string> = {
 /**
  * Short names for the chrome — desk icons, the dock, the phone home screen.
  * `APP_TITLE` is the system's formal name for an application and stays in the
- * window's title bar and the menus; an 88px icon needs a word, not a path.
+ * window's title bar and the menus; a 92px icon needs a word, not a path.
+ * Title case, because in capitals "Experiments" does not fit on one line.
  */
 export const APP_LABEL: Record<AppId, string> = {
-  projects: 'PROJECTS',
-  failures: 'FAILURES',
-  skills: 'SKILLS',
-  experiments: 'EXPERIMENTS',
-  monitor: 'SYSTEM',
-  about: 'ABOUT',
-  contact: 'CONTACT',
-  terminal: 'TERMINAL',
-  bin: 'BIN',
+  projects: 'Projects',
+  failures: 'Failures',
+  skills: 'Skills',
+  experiments: 'Experiments',
+  monitor: 'System',
+  about: 'About',
+  contact: 'Contact',
+  terminal: 'Terminal',
+  bin: 'Bin',
 }
 
 export const APP_SUBTITLE: Record<AppId, string> = {

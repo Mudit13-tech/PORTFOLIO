@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { countFor } from '@/lib/derived'
 import { DOCK_H, TOP_BAR_H } from '@/os/constants'
+import { markOrigin } from '@/os/motion'
 import { APP_LABEL, APP_ORDER, APP_PATH, APP_SUBTITLE, APP_TITLE } from '@/os/routes'
 import { AppIcon } from '@/components/ui'
 
@@ -44,7 +45,7 @@ export function DesktopIcons() {
       ref={gridRef}
       onKeyDown={onKeyDown}
       aria-label="Applications"
-      className="absolute right-4 grid grid-cols-2 gap-1 justify-items-center content-start"
+      className="absolute right-7 grid grid-cols-[repeat(2,92px)] gap-y-2 justify-items-center content-start"
       style={{ top: TOP_BAR_H + 10, bottom: DOCK_H }}
     >
       {APP_ORDER.map((id, i) => {
@@ -55,23 +56,24 @@ export function DesktopIcons() {
               href={APP_PATH[id]}
               tabIndex={i === active ? 0 : -1}
               onFocus={() => setActive(i)}
+              onPointerDown={(e) => markOrigin(id, e.currentTarget)}
               title={`${APP_TITLE[id]} — ${APP_SUBTITLE[id]}`}
-              className="desk-icon flex flex-col items-center gap-1.5 w-[96px] px-1 py-2.5 rounded-lg"
+              className="desk-icon flex flex-col items-center gap-[7px] w-[92px] py-1 rounded-lg"
             >
-              <AppIcon id={id} size={50} />
-              {/* A label with no spaces in it may break anywhere rather than
-                  widen the column and push the grid off the right edge — and
-                  it reserves two lines whether it uses them or not, so one
-                  long name cannot make its row taller than the others. The
-                  fallback font on a cold load is wider than the one we ship,
-                  and the grid has to survive that. */}
-              <span className="desk-label mono text-[10px] leading-[1.15] text-center text-primary [overflow-wrap:anywhere] min-h-[2.3em] flex items-start justify-center">
-                {APP_LABEL[id]}
-              </span>
-              {/* The count line is always present, even when empty, so every
-                  icon in the grid is the same height and the rows line up. */}
-              <span className="desk-label micro text-secondary leading-none">
-                {count !== null ? `${count} items` : '\u00a0'}
+              <AppIcon id={id} size={58} />
+              <span className="flex flex-col items-center gap-px">
+                {/* One line, always: the labels are title case so the longest
+                    one fits the column. If a wide fallback font ever makes one
+                    overflow, it is clipped rather than wrapped, so one name
+                    cannot make its row taller than the others. */}
+                <span className="desk-label text-[12.5px] font-medium leading-tight text-primary whitespace-nowrap max-w-full overflow-hidden text-ellipsis">
+                  {APP_LABEL[id]}
+                </span>
+                {/* The count line is always present, even when empty, so every
+                    icon in the grid is the same height and the rows line up. */}
+                <span className="desk-label mono text-[10.5px] leading-tight text-secondary">
+                  {count !== null ? `${count} items` : '\u00a0'}
+                </span>
               </span>
             </a>
           </li>

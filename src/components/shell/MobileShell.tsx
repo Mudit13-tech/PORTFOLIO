@@ -40,7 +40,7 @@ export function MobileShell() {
                 className="desk-icon flex flex-col items-center gap-1.5 w-[78px] min-h-[44px] pt-1 pb-1.5 rounded-xl"
               >
                 <AppIcon id={id} size={54} />
-                <span className="desk-label mono text-[10px] leading-[1.15] text-center text-primary break-words">
+                <span className="desk-label text-[11.5px] font-medium leading-tight text-center text-primary whitespace-nowrap">
                   {APP_LABEL[id]}
                 </span>
               </a>

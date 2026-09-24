@@ -6,6 +6,7 @@ import { CLOCK_DRIFT_MS, TOP_BAR_H } from '@/os/constants'
 import { APP_ORDER, APP_PATH, APP_TITLE } from '@/os/routes'
 import { useSystem, useSystemApi } from '@/os/SystemProvider'
 import { useTheme } from '@/os/theme'
+import { ICON_FINISH_LABEL, useIconFinish } from '@/os/icons'
 import type { AppId } from '@/os/types'
 import { Glyph } from '@/components/ui'
 
@@ -231,6 +232,7 @@ function MenuRule() {
 function SystemItems() {
   const api = useSystemApi()
   const { theme, toggle } = useTheme()
+  const icons = useIconFinish()
   const open = (id: AppId) => () => {
     api.open(id)
     window.history.pushState(null, '', APP_PATH[id])
@@ -245,6 +247,10 @@ function SystemItems() {
       <Item onSelect={toggle} hint={theme === 'light' ? 'light' : theme === 'dark' ? 'dark' : ''}>
         <Glyph name="theme" size={13} className="text-tertiary" />
         Appearance
+      </Item>
+      <Item onSelect={icons.cycle} hint={icons.finish ? ICON_FINISH_LABEL[icons.finish].toLowerCase() : ''}>
+        <Glyph name="grid" size={13} className="text-tertiary" />
+        Icon style
       </Item>
       <Item onSelect={() => api.setOverlay('shortcuts')} hint="?">
         Keyboard shortcuts

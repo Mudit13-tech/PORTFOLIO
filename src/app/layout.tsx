@@ -39,7 +39,7 @@ export const viewport: Viewport = {
 }
 
 /**
- * Stamped before first paint so the theme is settled by the time anything
+ * Stamped before first paint so the theme and the icon finish are settled by the time anything
  * renders. Every access is wrapped — private browsing throws on localStorage,
  * and a portfolio that white-screens in a private window fails the one test a
  * cautious visitor runs.
@@ -47,7 +47,9 @@ export const viewport: Viewport = {
 const PREFLIGHT = `(function(){var d=document.documentElement;
 try{var s=localStorage,t=s.getItem('mudit-os.v1.theme');
 if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}
-d.dataset.theme=t}catch(e){d.dataset.theme='dark'}})()`
+d.dataset.theme=t}catch(e){d.dataset.theme='dark'}
+try{var i=localStorage.getItem('mudit-os.v1.icons');
+d.dataset.icons=i==='paper'||i==='ink'?i:'glaze'}catch(e){d.dataset.icons='glaze'}})()`
 
 /**
  * The other half of the progressive enhancement, and the half that cannot

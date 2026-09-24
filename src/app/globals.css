@@ -387,150 +387,185 @@ body {
   }
 }
 
-/* --------------------------------------------------------- app tiles
- * An application icon is an object, not a swatch.
+/* --------------------------------------------------------- app icons
+ * One set of glyphs, three finishes. Every colour is computed here from the
+ * app's own --L/--C/--H (set inline by AppIcon), so a finish is a handful of
+ * formulas rather than twenty-seven hand-picked swatches, and adding an app
+ * means choosing one hue.
  *
- * Four things do that work: a vertical gradient so the surface has a top and a
- * bottom, a specular highlight thrown from a light off the upper left, an
- * inner bevel (one lit pixel at the top, one shaded at the bottom), and a
- * contact shadow plus a long ambient one so it sits above the desk rather than
- * being printed on it. The hue is the only thing that changes per app.
+ *   glaze  tinted gradient tiles, white glyphs (default)
+ *   paper  cream tiles, two-tone glyphs in the app's hue
+ *   ink    dark tiles, glyphs in the app's hue
  */
-@layer components {
-  .tile {
-    position: relative;
-    isolation: isolate;
-    background: linear-gradient(
-      176deg,
-      color-mix(in oklab, var(--tile) 74%, white 26%) 0%,
-      var(--tile) 46%,
-      color-mix(in oklab, var(--tile) 72%, black 28%) 100%
-    );
-    box-shadow:
-      0 0 0 0.5px rgb(0 0 0 / 0.55),
-      inset 0 1px 0 rgb(255 255 255 / 0.32),
-      inset 0 -1px 0 rgb(0 0 0 / 0.3),
-      inset 0 -12px 18px -12px rgb(0 0 0 / 0.5),
-      0 1px 2px rgb(0 0 0 / 0.4),
-      0 6px 14px -6px rgb(0 0 0 / 0.48);
-  }
-}
+.app-icon {
+  --ic-top: oklch(calc(var(--L) + 0.09) calc(var(--C) * 0.92) var(--H));
+  --ic-bot: oklch(calc(var(--L) - 0.05) calc(var(--C) * 1.05) var(--H));
+  --ic-p: #fff;
+  --ic-s: rgb(255 255 255 / 0.55);
+  --ic-k: oklch(calc(var(--L) - 0.13) var(--C) var(--H));
+  --ic-shadow: oklch(calc(var(--L) - 0.18) var(--C) var(--H) / 0.42);
+  --ic-rim: rgb(255 255 255 / 0.5);
+  --ic-edge: transparent;
+  --ic-sheen: 1;
 
-/* The specular. A pseudo-element rather than another gradient stop, because it
- * has to be elliptical and off-centre, and a linear gradient cannot be — and
- * because a highlight that can move is what makes a tile feel lit rather than
- * printed. On hover it slides across the face as if the icon had tilted. */
-.tile::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(84% 60% at 26% -10%, rgb(255 255 255 / 0.4), transparent 64%);
-  pointer-events: none;
+  display: block;
+  flex: none;
+  cursor: inherit;
+  filter: drop-shadow(0 calc(3px * var(--u)) calc(5px * var(--u)) var(--ic-shadow));
   transition:
-    opacity 320ms linear,
-    transform 560ms cubic-bezier(0.16, 1, 0.3, 1);
+    transform 350ms cubic-bezier(0.3, 1.5, 0.5, 1),
+    filter 300ms linear;
 }
 
-.tile {
-  transition:
-    transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 320ms cubic-bezier(0.16, 1, 0.3, 1);
+:root[data-icons='paper'] .app-icon {
+  --ic-top: #fbfaf6;
+  --ic-bot: #eeebe2;
+  --ic-p: oklch(min(var(--L), 0.56) calc(var(--C) * 1.1) var(--H));
+  --ic-s: oklch(0.86 min(calc(var(--C) * 0.5), 0.06) var(--H));
+  --ic-k: #f9f7f1;
+  --ic-shadow: rgb(70 60 35 / 0.22);
+  --ic-rim: #fff;
+  --ic-edge: rgb(50 45 30 / 0.14);
+  --ic-sheen: 0;
 }
 
-/* Hover lifts the tile toward the light: it rises, grows a little, throws a
- * longer shadow, and the highlight slides. Four small things in agreement,
- * rather than one big one. */
-:is(.desk-icon, .dock-slot, a, button):hover > .tile,
-:is(.desk-icon, a, button):focus-visible > .tile {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow:
-    0 0 0 0.5px rgb(0 0 0 / 0.55),
-    inset 0 1px 0 rgb(255 255 255 / 0.4),
-    inset 0 -1px 0 rgb(0 0 0 / 0.3),
-    inset 0 -12px 18px -12px rgb(0 0 0 / 0.5),
-    0 3px 6px rgb(0 0 0 / 0.4),
-    0 14px 28px -10px rgb(0 0 0 / 0.55);
+:root[data-icons='ink'] .app-icon {
+  --ic-top: #353933;
+  --ic-bot: #1c1f1c;
+  --ic-p: oklch(var(--iL, 0.77) var(--iC, calc(max(var(--C), 0.02) * 1.15)) var(--iH, var(--H)));
+  --ic-s: rgb(239 233 220 / 0.6);
+  --ic-k: #222522;
+  --ic-shadow: rgb(15 18 14 / 0.4);
+  --ic-rim: rgb(255 255 255 / 0.16);
 }
 
-:is(.desk-icon, .dock-slot, a, button):hover > .tile::before {
-  opacity: 1;
-  transform: translate3d(9%, 5%, 0) scale(1.18);
+.app-icon > svg {
+  display: block;
+  overflow: visible;
 }
 
-:is(.desk-icon, a, button):active > .tile {
-  transform: translateY(-1px) scale(0.975);
-  transition-duration: 90ms;
+.app-icon .ic-top { stop-color: var(--ic-top); }
+.app-icon .ic-bot { stop-color: var(--ic-bot); }
+.app-icon .ic-rim { stop-color: var(--ic-rim); }
+.app-icon .ic-sheen { opacity: var(--ic-sheen); }
+.app-icon .ic-edge { stroke: var(--ic-edge); }
+
+.app-icon .p { fill: var(--ic-p); }
+.app-icon .s { fill: var(--ic-s); }
+.app-icon .k { fill: var(--ic-k); }
+.app-icon .sp { stroke: var(--ic-p); }
+.app-icon .ss { stroke: var(--ic-s); }
+.app-icon .sk { stroke: var(--ic-k); }
+
+/* The icon answers to the control it sits in — the desk link, the dock
+ * button — so hovering the label animates it too. It rises, grows a little
+ * and throws a longer shadow; the press pushes it back in. */
+:is(a, button):is(:hover, :focus-visible) .app-icon {
+  transform: translateY(-2px) scale(1.05);
+  filter: drop-shadow(0 calc(7px * var(--u)) calc(10px * var(--u)) var(--ic-shadow));
 }
 
-/* A hairline of the app's own hue, lit — the rim light that stops a dark tile
- * from dissolving into a dark wallpaper. */
-.tile::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.14);
-  pointer-events: none;
+:is(a, button):active .app-icon {
+  transform: scale(0.92);
 }
 
-.tile > svg {
-  position: relative;
-  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.45));
+/* Moving parts. Springs overshoot; loops run only while hovered. Every one of
+ * these moves transform or opacity, and the reduced-motion block collapses
+ * them all. */
+.app-icon :is(.m-up1, .m-up2, .m-down, .m-turn, .m-nod, .m-letter, .m-flap, .m-prompt, .m-toss, .m-lid) {
+  transition: transform 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Progressive enhancement: a squircle is a rounder-cornered shape than a
- * border-radius can describe, and where it is supported the tiles read as
- * machined rather than clipped. */
-@supports (corner-shape: squircle) {
-  .tile {
-    corner-shape: squircle;
-  }
+.app-icon .m-shake { transform-origin: 32px 46px; }
+.app-icon .m-turn { transform-origin: 32px 32px; transition-duration: 600ms; }
+.app-icon .m-slosh { transform-origin: 32px 49px; }
+.app-icon .m-bubble { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.app-icon .m-ring { opacity: 0; transform-origin: 32px 32px; }
+.app-icon .m-flap { transform-origin: 32px 24px; }
+.app-icon .m-lid { transform-origin: 16px 22px; }
+
+:is(a, button):is(:hover, :focus-visible) .app-icon {
+  .m-up2 { transform: translateY(-3.5px); }
+  .m-up1 { transform: translateY(-1.5px); }
+  .m-down { transform: translateY(1.5px); }
+  .m-shake { animation: icon-shake 600ms ease-in-out; }
+  .m-turn { transform: rotate(180deg); }
+  .m-slosh { animation: icon-slosh 1.2s ease-in-out infinite; }
+  .m-bubble { animation: icon-bubble 1.1s ease-out infinite; }
+  .m-trace { animation: icon-trace 1.4s ease-in-out infinite; }
+  .m-ring { animation: icon-ring 1.4s ease-out infinite; }
+  .m-nod { transform: translateY(-2px); }
+  .m-letter { transform: translateY(-10px); }
+  .m-flap { transform: scaleY(0.35); }
+  .m-prompt { transform: translateX(1.5px); }
+  .m-blink { animation: icon-blink 0.9s steps(1) infinite; }
+  .m-toss { transform: translateY(-8px); }
+  .m-lid { transform: rotate(-18deg) translate(-1px, -2px); }
+}
+
+@keyframes icon-shake {
+  0%, 100% { transform: rotate(0); }
+  18% { transform: rotate(-10deg); }
+  36% { transform: rotate(8deg); }
+  54% { transform: rotate(-5deg); }
+  72% { transform: rotate(3deg); }
+}
+
+@keyframes icon-slosh {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
+}
+
+@keyframes icon-bubble {
+  0% { transform: translateY(0) scale(0.5); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: translateY(-15px) scale(1); opacity: 0; }
+}
+
+@keyframes icon-trace {
+  0% { stroke-dashoffset: 48; }
+  50% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -48; }
+}
+
+@keyframes icon-ring {
+  0% { transform: scale(0.72); opacity: 0.9; }
+  100% { transform: scale(1.22); opacity: 0; }
+}
+
+@keyframes icon-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
 }
 
 @media (forced-colors: active) {
-  .tile {
-    border: 1px solid CanvasText;
-    background: Canvas;
-  }
-
-  .tile::before,
-  .tile::after {
-    content: none;
+  .app-icon {
+    filter: none;
   }
 }
 
-/* ---------------------------------------------------------------- dock */
+/* ---------------------------------------------------------------- dock
+ * Slots are sized by the magnifier in Dock.tsx, which writes width and height
+ * straight to the element; the transition is what smooths it. */
 
-.dock-item {
+.dock-slot {
   transition:
-    transform 160ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 160ms linear;
-}
-
-.dock-item:hover:not(:disabled),
-.dock-item:focus-visible {
-  transform: translateY(-6px) scale(1.1);
-}
-
-/* The neighbours of the hovered icon lift a little too, so the row reads as
- * one surface responding rather than a single button popping. */
-.dock-slot:hover + .dock-slot .dock-item,
-.dock-slot:has(+ .dock-slot:hover) .dock-item {
-  transform: translateY(-2px) scale(1.04);
+    width 120ms ease-out,
+    height 120ms ease-out;
 }
 
 .tooltip {
   opacity: 0;
   transform: translate(-50%, 4px);
+  background: rgb(35 38 31 / 0.88);
+  color: #f4f1ea;
   transition:
-    opacity 120ms linear,
-    transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 150ms linear,
+    transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
 }
 
-/* The dot and the tooltip are siblings of the button, not adjacent to it, so
- * this has to be the general sibling combinator. */
 .dock-slot:hover .tooltip,
 .dock-item:focus-visible ~ .tooltip {
   opacity: 1;
@@ -559,17 +594,6 @@ body {
  * Motion explains system behaviour. Nothing animates for atmosphere, and
  * nothing animates a property other than transform and opacity.
  */
-@keyframes window-open {
-  from {
-    opacity: 0;
-    transform: translate3d(var(--wx), calc(var(--wy) + 14px), 0) scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(var(--wx), var(--wy), 0) scale(1);
-  }
-}
-
 @keyframes boot-line {
   from {
     opacity: 0;
@@ -610,10 +634,6 @@ body {
     opacity: 1;
     transform: translate3d(0, 0, 0);
   }
-}
-
-.anim-open {
-  animation: window-open 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .anim-shake {
@@ -754,16 +774,19 @@ body {
   }
 }
 
+/* Two hops, the second smaller, measured in the icon's own height so a
+ * magnified icon bounces as far as it looks like it should. */
 @keyframes dock-bounce {
   0%,
+  52%,
   100% {
     transform: translateY(0);
   }
-  40% {
-    transform: translateY(-9px);
+  28% {
+    transform: translateY(-38%);
   }
-  70% {
-    transform: translateY(-3px);
+  72% {
+    transform: translateY(-14%);
   }
 }
 
@@ -801,30 +824,15 @@ body {
 }
 
 .anim-bounce {
-  animation: dock-bounce 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: dock-bounce 820ms ease-in-out;
 }
 
 .anim-pop {
   animation: pop-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* A desktop icon is a hit target first and a picture second. */
-.desk-icon {
-  transition:
-    background-color 120ms linear,
-    transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.desk-icon:hover {
-  background-color: rgb(255 255 255 / 0.08);
-}
-
-:root[data-theme='light'] .desk-icon:hover {
-  background-color: rgb(0 0 0 / 0.06);
-}
-
-/* The press is carried by the tile, not the whole target — scaling the label
- * with it makes the text shimmer. */
+/* A desktop icon is a hit target first and a picture second. The tile does
+ * the hover; the target itself stays still so the label does not shimmer. */
 @keyframes icon-in {
   from {
     opacity: 0;
@@ -844,7 +852,7 @@ body {
 /* The running indicator under a dock icon. */
 .running-dot {
   background: var(--text-secondary);
-  opacity: 0.85;
+  transition: opacity 250ms linear;
 }
 
 /* Windows lose their drop shadow in forced colors, so they need a real edge. */

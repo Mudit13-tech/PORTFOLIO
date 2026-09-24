@@ -1,9 +1,10 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
+import { useCallback, useLayoutEffect, useRef } from 'react'
 import { CHROME_H } from '@/os/constants'
 import { useDragHandle, useResizeHandle } from '@/os/useDrag'
 import { useSystemApi } from '@/os/SystemProvider'
+import { playOpen, registerWindow } from '@/os/motion'
 import { APP_TITLE } from '@/os/routes'
 import type { SnapSide, WindowState } from '@/os/types'
 import { AppIcon, Glyph } from '@/components/ui'
@@ -14,6 +15,9 @@ import { AppIcon, Glyph } from '@/components/ui'
  * Positioned entirely by `transform`, never by `top`/`left`, so a drag costs a
  * composite rather than a layout. `contain: layout style paint` keeps a repaint
  * inside one window from costing the others.
+ *
+ * It grows out of the icon that opened it, and the store plays it back into
+ * the dock on close and minimize — see `os/motion`.
  */
 export function Window({
   win,
@@ -51,6 +55,17 @@ export function Window({
     disabled: win.maximized,
   })
 
+  // Runs each time the window appears: on first open, and on every restore
+  // from the dock, which is when it should grow back out of its dock icon.
+  const shown = useRef(false)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (win.minimized || !el) return
+    playOpen(win.id, el, shown.current)
+    shown.current = true
+    return registerWindow(win.id, el)
+  }, [win.id, win.minimized])
+
   if (win.minimized) return null
 
   const titleId = `win-title-${win.id}`
@@ -62,7 +77,7 @@ export function Window({
       role="dialog"
       aria-modal="false"
       aria-labelledby={titleId}
-      className={`window anim-open absolute top-0 left-0 flex flex-col rounded-xl border overflow-hidden bg-window ${
+      className={`window absolute top-0 left-0 flex flex-col rounded-xl border overflow-hidden bg-window ${
         focused
           ? 'border-strong shadow-[var(--shadow-focus)]'
           : 'border-subtle shadow-[var(--shadow-rest)]'
@@ -72,9 +87,6 @@ export function Window({
         width: win.rect.w,
         height: win.rect.h,
         zIndex: win.z,
-        // Read by the open animation so it starts from the window's own position.
-        ['--wx' as string]: `${win.rect.x}px`,
-        ['--wy' as string]: `${win.rect.y}px`,
       }}
       onPointerDown={focus}
     >

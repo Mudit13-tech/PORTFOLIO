@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useRef, useSyncExternalStore } from 'react'
 import { BP_DESKTOP, BP_TABLET } from './constants'
+import { assertIconFinish } from './icons'
 import { readFlag } from './persist'
 import { createStore, type Store } from './store'
 import type { ShellKind, SystemState } from './types'
@@ -34,6 +35,7 @@ export function SystemProvider({ children }: { children: React.ReactNode }) {
             ? 'light'
             : 'dark'
     }
+    assertIconFinish()
 
     window.addEventListener('resize', sync)
     return () => window.removeEventListener('resize', sync)

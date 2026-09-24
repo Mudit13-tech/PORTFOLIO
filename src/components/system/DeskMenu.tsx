@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { APP_PATH } from '@/os/routes'
 import { useSystem, useSystemApi } from '@/os/SystemProvider'
 import { useTheme } from '@/os/theme'
+import { ICON_FINISH_LABEL, useIconFinish } from '@/os/icons'
 import type { AppId } from '@/os/types'
 import { Glyph } from '@/components/ui'
 
@@ -20,6 +21,7 @@ export function DeskMenu() {
   const api = useSystemApi()
   const windows = useSystem((s) => s.windows)
   const { theme, toggle } = useTheme()
+  const icons = useIconFinish()
   const [at, setAt] = useState<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
@@ -77,6 +79,10 @@ export function DeskMenu() {
       <Row onSelect={toggle}>
         <Glyph name="theme" size={13} className="text-tertiary" />
         {theme === 'light' ? 'Dark appearance' : 'Light appearance'}
+      </Row>
+      <Row onSelect={icons.cycle} hint={icons.finish ? ICON_FINISH_LABEL[icons.finish] : undefined}>
+        <Glyph name="grid" size={13} className="text-tertiary" />
+        Icon style
       </Row>
       <hr className="my-1 border-0 border-t border-subtle/70" />
       <Row
