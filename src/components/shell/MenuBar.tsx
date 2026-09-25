@@ -7,6 +7,7 @@ import { APP_ORDER, APP_PATH, APP_TITLE } from '@/os/routes'
 import { useSystem, useSystemApi } from '@/os/SystemProvider'
 import { useTheme } from '@/os/theme'
 import { ICON_FINISH_LABEL, useIconFinish } from '@/os/icons'
+import { useSound } from '@/os/sound'
 import type { AppId } from '@/os/types'
 import { Glyph } from '@/components/ui'
 
@@ -233,6 +234,7 @@ function SystemItems() {
   const api = useSystemApi()
   const { theme, toggle } = useTheme()
   const icons = useIconFinish()
+  const sound = useSound()
   const open = (id: AppId) => () => {
     api.open(id)
     window.history.pushState(null, '', APP_PATH[id])
@@ -251,6 +253,12 @@ function SystemItems() {
       <Item onSelect={icons.cycle} hint={icons.finish ? ICON_FINISH_LABEL[icons.finish].toLowerCase() : ''}>
         <Glyph name="grid" size={13} className="text-tertiary" />
         Icon style
+      </Item>
+      {/* Off until asked for. Every application has its own voice; this is the
+          switch that lets you hear them. */}
+      <Item onSelect={sound.toggle} hint={sound.soundOn === null ? '' : sound.soundOn ? 'on' : 'off'}>
+        <Glyph name="sound" size={13} className="text-tertiary" />
+        Sound
       </Item>
       <Item onSelect={() => api.setOverlay('shortcuts')} hint="?">
         Keyboard shortcuts

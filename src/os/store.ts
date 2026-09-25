@@ -1,3 +1,4 @@
+import { appSfx, sfx } from '@/lib/sfx'
 import { MAX_WINDOWS, Z_BASE } from './constants'
 import { cascade, clampSize, clampToViewport, maximizedRect, renormalise, snapRect } from './geometry'
 import * as motion from './motion'
@@ -11,6 +12,12 @@ import type { AppId, Rect, SystemApi, SystemState, Viewport, WindowState } from 
  * Close and minimize go through `motion.exit`, which plays the window out and
  * then makes the change. Without a window on screen to animate, it makes the
  * change at once, so the state machine never waits on an animation.
+ *
+ * The sounds are fired from here rather than from the controls, for the same
+ * reason the animations are: a window can be opened from the desk, the dock, a
+ * menu, a link inside another window, the launcher or a keyboard shortcut, and
+ * all six have to sound the same. `sfx` is silent unless the visitor has turned
+ * sound on, so this costs nothing by default.
  */
 
 export interface Store extends SystemApi {
@@ -109,7 +116,8 @@ export function createStore(): Store {
       motion.settle(id)
       const existing = find(id)
       if (existing) {
-        if (!existing.minimized && state.focusOrder.at(-1) === id) motion.nudge(id)
+        if (existing.minimized) sfx('restore')
+        else if (state.focusOrder.at(-1) === id) motion.nudge(id)
         const { z, nextZ } = raise(id)
         set({
           windows: state.windows.map((w) =>
@@ -153,11 +161,16 @@ export function createStore(): Store {
         visited: state.visited.includes(id) ? state.visited : [...state.visited, id],
       })
 
+      // The application's own voice, not a generic chime: which one opened is
+      // audible without looking at the screen.
+      appSfx(id, 'launch')
+
       if (evicted) setTimeout(() => set({ evicted: null }), 600)
     },
 
     close(id) {
       if (!find(id)) return
+      appSfx(id, 'shut')
       motion.exit(id, 'close', () =>
         set({
           windows: state.windows.filter((w) => w.id !== id),
@@ -180,6 +193,7 @@ export function createStore(): Store {
     minimize(id) {
       const win = find(id)
       if (!win || win.minimized) return
+      sfx('minimize')
       motion.exit(id, 'minimize', () =>
         set({
           windows: state.windows.map((w) => (w.id === id ? { ...w, minimized: true } : w)),
@@ -189,6 +203,7 @@ export function createStore(): Store {
     },
 
     toggleMaximize(id) {
+      sfx('maximize')
       set({
         windows: state.windows.map((w) => {
           if (w.id !== id) return w

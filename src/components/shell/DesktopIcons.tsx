@@ -5,7 +5,7 @@ import { countFor } from '@/lib/derived'
 import { DOCK_H, TOP_BAR_H } from '@/os/constants'
 import { markOrigin } from '@/os/motion'
 import { APP_LABEL, APP_ORDER, APP_PATH, APP_SUBTITLE, APP_TITLE } from '@/os/routes'
-import { AppIcon } from '@/components/ui'
+import { AppIcon3D } from '@/components/ui'
 
 /**
  * The desk.
@@ -45,8 +45,8 @@ export function DesktopIcons() {
       ref={gridRef}
       onKeyDown={onKeyDown}
       aria-label="Applications"
-      className="absolute right-7 grid grid-cols-[repeat(2,92px)] gap-y-2 justify-items-center content-start"
-      style={{ top: TOP_BAR_H + 10, bottom: DOCK_H }}
+      className="absolute right-3.5 grid grid-cols-[repeat(2,100px)] gap-y-1 justify-items-center content-start"
+      style={{ top: TOP_BAR_H + 12, bottom: DOCK_H }}
     >
       {APP_ORDER.map((id, i) => {
         const count = countFor(id)
@@ -58,9 +58,9 @@ export function DesktopIcons() {
               onFocus={() => setActive(i)}
               onPointerDown={(e) => markOrigin(id, e.currentTarget)}
               title={`${APP_TITLE[id]} — ${APP_SUBTITLE[id]}`}
-              className="desk-icon flex flex-col items-center gap-[7px] w-[92px] py-1 rounded-lg"
+              className="desk-icon flex flex-col items-center gap-1 w-[100px] py-1.5 rounded-[10px]"
             >
-              <AppIcon id={id} size={58} />
+              <AppIcon3D id={id} size={66} />
               <span className="flex flex-col items-center gap-px">
                 {/* One line, always: the labels are title case so the longest
                     one fits the column. If a wide fallback font ever makes one

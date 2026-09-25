@@ -37,6 +37,7 @@ export type GlyphName =
   | 'power'
   | 'folder'
   | 'caret'
+  | 'sound'
 
 const PATHS: Record<GlyphName, React.ReactNode> = {
   projects: <rect x="2.75" y="2.75" width="10.5" height="10.5" rx="1" />,
@@ -134,9 +135,17 @@ const PATHS: Record<GlyphName, React.ReactNode> = {
     </>
   ),
   caret: <path d="m4 6.5 4 4 4-4" />,
+  /* A driver and one wave. Two waves at 16px close up into a smudge. */
+  sound: (
+    <>
+      <path d="M8.5 2.75 4.75 5.75H2.5v4.5h2.25l3.75 3V2.75Z" />
+      <path d="M11.25 6a2.75 2.75 0 0 1 0 4" />
+    </>
+  ),
 }
 
 export { AppIcon } from './AppIcon'
+export { AppIcon3D, IconFramesProvider } from './AppIcon3D'
 
 export function Glyph({
   name,

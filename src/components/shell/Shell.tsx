@@ -9,10 +9,12 @@ import { useShortcuts } from '@/os/useShortcuts'
 import { WindowLayer } from '@/components/window/WindowLayer'
 import { Overlays } from '@/components/system/Overlays'
 import { Widgets } from '@/components/desktop/Widgets'
+import { IconFramesProvider } from '@/components/ui'
 import { DesktopIcons } from './DesktopIcons'
 import { Dock } from './Dock'
 import { MenuBar } from './MenuBar'
 import { MobileShell } from './MobileShell'
+import { Wallpaper } from './Wallpaper'
 
 /**
  * The shell.
@@ -68,28 +70,35 @@ export function Shell({
         {serverContent}
       </div>
 
-      <div className="os-shell">
-        <MenuBar />
+      {/* The nine icon objects are rendered once, here, and shared by the desk,
+          the dock, every title bar and the phone home screen. */}
+      <IconFramesProvider>
+        <div className="os-shell">
+          <MenuBar />
 
-        {kind === 'mobile' ? (
-          <MobileShell />
-        ) : (
-          <>
-            <main
-              data-desk
-              className="wallpaper fixed inset-0 overflow-hidden"
-              style={{ paddingTop: TOP_BAR_H, paddingBottom: DOCK_H }}
-            >
-              <Widgets />
-              <DesktopIcons />
-              <WindowLayer />
-            </main>
-            <Dock />
-          </>
-        )}
+          {kind === 'mobile' ? (
+            <MobileShell />
+          ) : (
+            <>
+              <main
+                data-desk
+                className="wallpaper fixed inset-0 overflow-hidden"
+                style={{ paddingTop: TOP_BAR_H, paddingBottom: DOCK_H }}
+              >
+                {/* Bottom layer, over the CSS gradient that is this element's
+                    own background and under everything else on the desk. */}
+                <Wallpaper />
+                <Widgets />
+                <DesktopIcons />
+                <WindowLayer />
+              </main>
+              <Dock />
+            </>
+          )}
 
-        <Overlays />
-      </div>
+          <Overlays />
+        </div>
+      </IconFramesProvider>
     </LinkInterceptor>
   )
 }

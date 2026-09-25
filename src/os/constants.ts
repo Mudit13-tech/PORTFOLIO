@@ -4,7 +4,7 @@
 export const TOP_BAR_H = 30
 /** Reserved for the dock: the floating bar plus the air around it. */
 export const DOCK_H = 84
-export const CHROME_H = 34
+export const CHROME_H = 40
 
 export const MIN_W = 320
 export const MIN_H = 240

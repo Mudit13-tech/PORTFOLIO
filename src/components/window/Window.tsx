@@ -7,7 +7,7 @@ import { useSystemApi } from '@/os/SystemProvider'
 import { playOpen, registerWindow } from '@/os/motion'
 import { APP_TITLE } from '@/os/routes'
 import type { SnapSide, WindowState } from '@/os/types'
-import { AppIcon, Glyph } from '@/components/ui'
+import { AppIcon3D, Glyph } from '@/components/ui'
 
 /**
  * One window.
@@ -77,7 +77,7 @@ export function Window({
       role="dialog"
       aria-modal="false"
       aria-labelledby={titleId}
-      className={`window absolute top-0 left-0 flex flex-col rounded-xl border overflow-hidden bg-window ${
+      className={`window absolute top-0 left-0 flex flex-col rounded-[14px] border overflow-hidden ${
         focused
           ? 'border-strong shadow-[var(--shadow-focus)]'
           : 'border-subtle shadow-[var(--shadow-rest)]'
@@ -98,7 +98,7 @@ export function Window({
         } ${focused ? '' : 'opacity-70'}`}
         style={{ height: CHROME_H }}
       >
-        <AppIcon id={win.id} size={18} />
+        <AppIcon3D id={win.id} size={20} />
         <h2 id={titleId} className="mono text-[12px] truncate">
           <span className={focused ? 'text-primary' : 'text-secondary'}>{APP_TITLE[win.id]}</span>
           {win.payload ? <span className="text-tertiary">/{win.payload}</span> : null}

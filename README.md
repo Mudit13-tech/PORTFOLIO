@@ -47,13 +47,35 @@ widgets and icons, a dock and a window manager; the phone gets a home screen
 and full-screen sheets. Both render the identical app components. A 390px
 screen never pretends to be a draggable desktop.
 
-**The desk is drawn, not downloaded.** The wallpaper is four gradient layers —
-an instrument grid, contour rings, two light sources and a base — so it costs
-zero bytes and zero DOM nodes, and it re-values itself for the light theme
-instead of shipping a second photograph. Every piece of chrome is one material:
-the desk behind it, blurred, with a hairline of light along the top edge. Where
-a browser cannot blur, the panel turns opaque; legibility never depends on the
-effect.
+**The desk is drawn, not downloaded.** The wallpaper is a fragment shader —
+domain-warped noise, lit by one light and read through a five-stop teal-to-violet
+gradient, drifting at about a hundredth of the noise scale per second. Under it,
+never removed, is the four-layer CSS gradient it replaced: that is what paints
+before the shader compiles, what a browser with no WebGL keeps, and what is
+behind the canvas if the context is ever lost. Every piece of chrome is one
+material — the desk behind it, blurred, with a hairline of light along the top
+edge. Where a browser cannot blur, the panel turns opaque; legibility never
+depends on the effect.
+
+**The icons are objects, not drawings.** Nine small physical things — a folder,
+a cone, a crystal, a flask, a tube monitor, a badge, a letter, a keycap, a wire
+bin — modelled in `src/lib/icons3d.ts`, lit on one studio set and photographed in
+the browser into a sixteen-frame turn each. That is roughly eleven kilobytes of
+geometry code against about two megabytes of pre-rendered PNGs at every size a
+retina dock asks for. Two rules hold the set together: one camera and one
+lighting rig for all nine, so they look photographed on the same afternoon; and
+every object moves the way its own material would, so hovering opens the folder,
+rocks the cone, presses the keycap and sends bubbles up the flask. The render
+runs once, on an idle callback, behind the flat SVG set — which stays as the
+`Glaze`, `Paper` and `Ink` finishes under System ▸ Icon style, and as the icons a
+machine with no WebGL keeps. Nothing on the desk ever waits on a GPU.
+
+**Every application has its own voice.** Sound is off until you ask for it
+(System ▸ Sound), synthesised rather than downloaded — not one audio file ships —
+and each application's hover, press and launch are three sizes of one idea, the
+material the icon is made of. The terminal thocks like a keyswitch, the crystal
+rings inharmonically like struck glass, the bin is thin metal with paper in it.
+Opening an application from the dock tells you which one without looking.
 
 **One calendar per source, never one grid for both.** GitHub contributions and
 LeetCode submissions get a heatmap each, because they are measured in different
@@ -86,6 +108,8 @@ src/components/desktop/    desk widgets
 src/components/window/     the window manager
 src/components/system/     heatmap, launcher, desk menu, overlays
 src/lib/                   derived.ts — counts and metrics; activity.ts — the heatmap model
+                           icons3d.ts — the nine icon objects; wallpaper.ts — the desk shader
+                           sfx.ts — one synthesised voice per application
 src/app/                   routes. One per app, one per record
 ```
 

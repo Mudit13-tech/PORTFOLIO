@@ -49,7 +49,7 @@ try{var s=localStorage,t=s.getItem('mudit-os.v1.theme');
 if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}
 d.dataset.theme=t}catch(e){d.dataset.theme='dark'}
 try{var i=localStorage.getItem('mudit-os.v1.icons');
-d.dataset.icons=i==='paper'||i==='ink'?i:'glaze'}catch(e){d.dataset.icons='glaze'}})()`
+d.dataset.icons=i==='paper'||i==='ink'||i==='glaze'?i:'studio'}catch(e){d.dataset.icons='studio'}})()`
 
 /**
  * The other half of the progressive enhancement, and the half that cannot

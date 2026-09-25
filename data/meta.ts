@@ -13,7 +13,7 @@ export const meta = {
   description: 'A portfolio of things I built, broke, fixed, and learned from.',
 
   /** Stamped at build time. Format: YYYY-MM-DD. */
-  deployedAt: '2026-09-22',
+  deployedAt: '2026-09-25',
 
   /** The date the GitHub account was created — the uptime clock starts here. */
   since: '2025-06-06',

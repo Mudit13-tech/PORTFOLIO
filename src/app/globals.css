@@ -352,6 +352,26 @@ body {
     auto;
 }
 
+/* The live surface. It lies over the gradient above rather than replacing it:
+ * the gradient is what paints while the shader compiles, what a browser with no
+ * WebGL keeps forever, and what is behind the canvas if the context is ever
+ * lost. It fades in only once the shader has actually drawn a frame, so a
+ * failed mount leaves no empty rectangle on the desk. */
+.wallpaper-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.wallpaper-canvas[data-live='true'] {
+  opacity: 1;
+}
+
 /* ------------------------------------------------------------- glass
  * One material for every piece of chrome: the desk behind it, blurred, with a
  * hairline of light along the top edge. Where the browser cannot blur, the
@@ -367,8 +387,8 @@ body {
 
 @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
   .glass {
-    -webkit-backdrop-filter: blur(20px) saturate(1.5);
-    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(30px) saturate(1.7);
+    backdrop-filter: blur(30px) saturate(1.7);
   }
 }
 
@@ -537,6 +557,49 @@ body {
 @keyframes icon-blink {
   0%, 49% { opacity: 1; }
   50%, 100% { opacity: 0; }
+}
+
+/* ------------------------------------------------- studio icons (default)
+ * The object set. These are photographs, not drawings, so almost none of the
+ * machinery above applies: the shading, the highlights and the moving parts are
+ * all baked into the frames by `lib/icons3d.ts`, and the only thing CSS has left
+ * to do is place the image and cast the contact shadow the render cannot know
+ * the size of.
+ *
+ * The hover rise and the press still come from the block above, because they
+ * belong to the control the icon sits in rather than to the icon — hovering the
+ * label under a desk icon has to lift the object too.
+ */
+.app-object {
+  /* Neutral, not hue-derived: a photographed object throws a grey shadow. */
+  --ic-shadow: rgb(12 20 18 / 0.34);
+  position: relative;
+  animation: icon-develop 320ms ease-out both;
+}
+
+:root[data-theme='light'] .app-object {
+  --ic-shadow: rgb(30 44 38 / 0.26);
+}
+
+.app-object > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* The swap from the flat icon to the object, once the frames land. Pitched as a
+ * print coming up rather than a hard cut, so a desk full of icons resolving does
+ * not read as nine separate pops. */
+@keyframes icon-develop {
+  from { opacity: 0; transform: scale(0.94); filter: blur(3px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-object { animation: none; }
 }
 
 @media (forced-colors: active) {
@@ -725,10 +788,35 @@ body {
 }
 
 /* Windows are positioned entirely by transform, and contained so a repaint in
- * one never costs the others. */
+ * one never costs the others.
+ *
+ * The surface is the same frosted material as the rest of the chrome, so the
+ * desk's colour carries through a window instead of stopping at its edge. The
+ * opaque `--surface-window` stays as the base layer: it is what a browser with
+ * no `backdrop-filter` keeps, and it is what guarantees the text contrast this
+ * file's tokens were chosen for even if the blur silently does nothing. */
 .window {
   contain: layout style paint;
   will-change: transform;
+  background: var(--surface-window);
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .window {
+    background: color-mix(in srgb, var(--surface-window) 88%, transparent);
+    -webkit-backdrop-filter: blur(30px) saturate(1.5);
+    backdrop-filter: blur(30px) saturate(1.5);
+  }
+
+  /* The title bar keeps its own lit gradient, so it needs the same treatment
+   * or it would be the one opaque strip in an otherwise translucent window. */
+  .window-chrome {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, color-mix(in oklab, var(--surface-chrome) 88%, white 12%) 72%, transparent),
+      color-mix(in srgb, var(--surface-chrome) 72%, transparent)
+    );
+  }
 }
 
 /* 1:1 dragging — no smoothing, no spring. A window that lags the cursor

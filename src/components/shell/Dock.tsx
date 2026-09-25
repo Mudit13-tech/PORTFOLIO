@@ -6,12 +6,12 @@ import { APP_LABEL, APP_ORDER, APP_PATH, APP_SUBTITLE, APP_TITLE } from '@/os/ro
 import { markOrigin } from '@/os/motion'
 import { useSystem, useSystemApi } from '@/os/SystemProvider'
 import type { AppId } from '@/os/types'
-import { AppIcon } from '@/components/ui'
+import { AppIcon3D } from '@/components/ui'
 
 /** Resting icon size, the size under the cursor, and how far the swell reaches. */
-const BASE = 50
-const PEAK = 74
-const REACH = 150
+const BASE = 54
+const PEAK = 80
+const REACH = 160
 
 /**
  * The dock.
@@ -153,7 +153,7 @@ function DockItem({
           shaking ? 'anim-shake' : ''
         }`}
       >
-        <AppIcon id={id} size={BASE} fluid />
+        <AppIcon3D id={id} size={BASE} fluid />
       </button>
 
       <span

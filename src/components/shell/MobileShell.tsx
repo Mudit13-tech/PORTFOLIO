@@ -6,7 +6,7 @@ import { countFor } from '@/lib/derived'
 import { TOP_BAR_H } from '@/os/constants'
 import { APP_LABEL, APP_ORDER, APP_PATH, APP_TITLE } from '@/os/routes'
 import { useSystem, useSystemApi } from '@/os/SystemProvider'
-import { AppIcon, Glyph } from '@/components/ui'
+import { AppIcon3D, Glyph } from '@/components/ui'
 import { Heatmap } from '@/components/system/Heatmap'
 import { AppView } from '@/components/window/registry'
 
@@ -39,7 +39,7 @@ export function MobileShell() {
                 href={APP_PATH[id]}
                 className="desk-icon flex flex-col items-center gap-1.5 w-[78px] min-h-[44px] pt-1 pb-1.5 rounded-xl"
               >
-                <AppIcon id={id} size={54} />
+                <AppIcon3D id={id} size={54} />
                 <span className="desk-label text-[11.5px] font-medium leading-tight text-center text-primary whitespace-nowrap">
                   {APP_LABEL[id]}
                 </span>
@@ -86,7 +86,7 @@ export function MobileShell() {
             aria-label={APP_TITLE[id]}
             className="grid place-items-center min-w-[44px] min-h-[44px] rounded-xl"
           >
-            <AppIcon id={id} size={44} />
+            <AppIcon3D id={id} size={44} />
           </a>
         ))}
       </nav>
