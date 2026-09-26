@@ -66,7 +66,7 @@ export function Shell({
         is what a crawler indexes and what a visitor without JavaScript reads.
         The CSS removes it the moment scripting is confirmed, before first paint.
       */}
-      <div className="static-doc" id="content">
+      <div className="static-doc @container" id="content">
         {serverContent}
       </div>
 

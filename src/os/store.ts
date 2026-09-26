@@ -1,6 +1,6 @@
 import { appSfx, sfx } from '@/lib/sfx'
-import { MAX_WINDOWS, Z_BASE } from './constants'
-import { cascade, clampSize, clampToViewport, maximizedRect, renormalise, snapRect } from './geometry'
+import { BP_SHORT, BP_TABLET, MAX_WINDOWS, Z_BASE } from './constants'
+import { cascade, clampSize, clampToViewport, fitToViewport, maximizedRect, renormalise, snapRect } from './geometry'
 import * as motion from './motion'
 import { loadLayout, saveLayout } from './persist'
 import type { AppId, Rect, SystemApi, SystemState, Viewport, WindowState } from './types'
@@ -39,6 +39,9 @@ const DEFAULT_SIZE: Record<AppId, { w: number; h: number }> = {
   bin: { w: 560, h: 440 },
 }
 
+/** The phone shell, where windows are sheets and their geometry is off stage. */
+const isPhone = (v: Viewport) => v.w < BP_TABLET || v.h < BP_SHORT
+
 function initialState(): SystemState {
   return {
     booted: false,
@@ -57,7 +60,12 @@ function initialState(): SystemState {
 
 export function createStore(): Store {
   let state = initialState()
-  let viewport: Viewport = { w: 1440, h: 900 }
+  // The real screen when there is one. A deep link opens its window from the
+  // shell's effect, which runs before the provider's resize sync — so without
+  // this the first window was placed for a 1440x900 screen and then shoved
+  // into whatever the visitor actually had.
+  let viewport: Viewport =
+    typeof window === 'undefined' ? { w: 1440, h: 900 } : { w: window.innerWidth, h: window.innerHeight }
   let hydrated = false
   const listeners = new Set<() => void>()
 
@@ -105,9 +113,16 @@ export function createStore(): Store {
 
     setViewport(v) {
       viewport = v
-      // Pull any window that the new viewport would have stranded back inside.
+      // In the phone shell windows are full-screen sheets and their geometry is
+      // not on screen at all. Leave it alone, so a browser narrowed for a
+      // moment gives the desk back exactly as it was.
+      if (isPhone(v)) return
+      // Pull any window that the new viewport would have stranded back inside,
+      // whole — and the geometry a maximized window will restore to as well.
       const windows = state.windows.map((w) =>
-        w.maximized ? { ...w, rect: maximizedRect(v) } : { ...w, rect: clampToViewport(w.rect, v) },
+        w.maximized
+          ? { ...w, rect: maximizedRect(v), restore: w.restore ? fitToViewport(w.restore, v) : null }
+          : { ...w, rect: fitToViewport(w.rect, v) },
       )
       set({ windows })
     },
@@ -295,7 +310,11 @@ export function createStore(): Store {
         .filter((w) => !open.has(w.id))
         .map((w, i) => ({
           ...w,
-          rect: w.maximized ? maximizedRect(viewport) : clampToViewport(w.rect, viewport),
+          rect: isPhone(viewport)
+            ? w.rect
+            : w.maximized
+              ? maximizedRect(viewport)
+              : fitToViewport(w.rect, viewport),
           z: Z_BASE + i,
           restore: null,
           fromServer: false,

@@ -1,11 +1,16 @@
 import {
+  BP_DESKTOP,
   CASCADE,
   CASCADE_RESET,
   DOCK_H,
+  ICON_GUTTER,
+  ICON_GUTTER_SHORT,
+  ICONS_SHORT_H,
   KEEP_ON_SCREEN,
   MIN_H,
   MIN_W,
   TOP_BAR_H,
+  WIDGET_GUTTER,
   Z_BASE,
   Z_RENORM,
 } from './constants'
@@ -34,16 +39,34 @@ export function snapRect(side: 'left' | 'right' | 'top', vp: Viewport): Rect {
 }
 
 /**
- * Cascade from the last position, offset 28px, reset to origin after six —
- * so a seventh window does not walk off the bottom right of the screen.
+ * Where a new window opens.
+ *
+ * It prefers the open desk: between the widgets on the left and the icons on
+ * the right, where it covers nothing. If it does not fit there it may cover the
+ * widgets, and only on a narrow screen does it take the whole width. Within
+ * that lane the stack of cascaded windows is centred, offset 28px each and
+ * reset after six so a seventh does not walk off the bottom right. The height
+ * shrinks with the offset, so a cascaded window never slides under the dock.
  */
 export function cascade(index: number, size: { w: number; h: number }, vp: Viewport): Rect {
   const a = workArea(vp)
   const step = index % CASCADE_RESET
-  const w = Math.min(size.w, a.w - 32)
-  const h = Math.min(size.h, a.h - 32)
-  const x = a.x + 32 + step * CASCADE
-  const y = a.y + 24 + step * CASCADE
+  const offset = step * CASCADE
+
+  const icons = vp.h < ICONS_SHORT_H ? ICON_GUTTER_SHORT : ICON_GUTTER
+  const lanes = [
+    ...(vp.w >= BP_DESKTOP ? [{ l: WIDGET_GUTTER, r: vp.w - icons }] : []),
+    { l: 24, r: vp.w - icons },
+    { l: 16, r: vp.w - 16 },
+  ]
+  const lane = lanes.find((l) => l.r - l.l >= size.w) ?? lanes[lanes.length - 1]
+
+  const w = Math.min(size.w, lane.r - lane.l)
+  const room = lane.r - lane.l - w
+  const start = lane.l + Math.max(0, Math.round((room - CASCADE * (CASCADE_RESET - 1)) / 2))
+  const x = Math.min(start + offset, lane.l + room)
+  const y = a.y + 20 + offset
+  const h = Math.min(size.h, a.y + a.h - y - 12)
   return clampToViewport({ x, y, w, h }, vp)
 }
 
@@ -62,6 +85,24 @@ export function clampToViewport(rect: Rect, vp: Viewport): Rect {
   return {
     x: Math.round(Math.min(Math.max(rect.x, minX), maxX)),
     y: Math.round(Math.min(Math.max(rect.y, minY), maxY)),
+    w: Math.round(w),
+    h: Math.round(h),
+  }
+}
+
+/**
+ * Bring a window wholly on screen, shrinking it if it has to. Used when the
+ * screen itself changes — a restored desk from a larger monitor, a rotated
+ * tablet — where "80px of it is still reachable" is not good enough: nobody
+ * dragged it there, so nobody should have to drag it back.
+ */
+export function fitToViewport(rect: Rect, vp: Viewport): Rect {
+  const a = workArea(vp)
+  const w = Math.max(Math.min(MIN_W, a.w), Math.min(rect.w, a.w - 16))
+  const h = Math.max(Math.min(MIN_H, a.h), Math.min(rect.h, a.h - 8))
+  return {
+    x: Math.round(Math.min(Math.max(rect.x, a.x + 8), a.x + a.w - w - 8)),
+    y: Math.round(Math.min(Math.max(rect.y, a.y), a.y + a.h - h - 8)),
     w: Math.round(w),
     h: Math.round(h),
   }

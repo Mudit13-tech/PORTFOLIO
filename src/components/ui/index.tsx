@@ -38,6 +38,7 @@ export type GlyphName =
   | 'folder'
   | 'caret'
   | 'sound'
+  | 'enter'
 
 const PATHS: Record<GlyphName, React.ReactNode> = {
   projects: <rect x="2.75" y="2.75" width="10.5" height="10.5" rx="1" />,
@@ -136,6 +137,12 @@ const PATHS: Record<GlyphName, React.ReactNode> = {
   ),
   caret: <path d="m4 6.5 4 4 4-4" />,
   /* A driver and one wave. Two waves at 16px close up into a smudge. */
+  enter: (
+    <>
+      <path d="M12.5 3.5v4.75a2 2 0 0 1-2 2h-7" />
+      <path d="m6 7.25-3 3 3 3" />
+    </>
+  ),
   sound: (
     <>
       <path d="M8.5 2.75 4.75 5.75H2.5v4.5h2.25l3.75 3V2.75Z" />
@@ -181,18 +188,18 @@ export function Glyph({
  * the word, and a glyph. That is the difference between a design that passes a
  * contrast audit and one that a colour-blind reader can actually use.
  */
-const FAILURE_TONE: Record<FailureStatus, { tone: string; label: string; glyph: GlyphName }> = {
-  failed: { tone: 'text-error', label: 'failed', glyph: 'warn' },
-  broken: { tone: 'text-error', label: 'broken', glyph: 'warn' },
-  'data-loss': { tone: 'text-error', label: 'data loss', glyph: 'warn' },
-  abandoned: { tone: 'text-warn', label: 'abandoned', glyph: 'warn' },
-  'never-shipped': { tone: 'text-warn', label: 'never shipped', glyph: 'warn' },
+const FAILURE_TONE: Record<FailureStatus, { tone: 'ok' | 'warn' | 'error' | 'neutral'; label: string; glyph: GlyphName }> = {
+  failed: { tone: 'error', label: 'failed', glyph: 'warn' },
+  broken: { tone: 'error', label: 'broken', glyph: 'warn' },
+  'data-loss': { tone: 'error', label: 'data loss', glyph: 'warn' },
+  abandoned: { tone: 'warn', label: 'abandoned', glyph: 'warn' },
+  'never-shipped': { tone: 'warn', label: 'never shipped', glyph: 'warn' },
 }
 
-const PROJECT_TONE: Record<ProjectStatus, { tone: string; label: string; glyph: GlyphName }> = {
-  shipped: { tone: 'text-ok', label: 'shipped', glyph: 'check' },
-  wip: { tone: 'text-warn', label: 'in progress', glyph: 'chevron' },
-  archived: { tone: 'text-tertiary', label: 'archived', glyph: 'bin' },
+const PROJECT_TONE: Record<ProjectStatus, { tone: 'ok' | 'warn' | 'error' | 'neutral'; label: string; glyph: GlyphName }> = {
+  shipped: { tone: 'ok', label: 'shipped', glyph: 'check' },
+  wip: { tone: 'warn', label: 'in progress', glyph: 'chevron' },
+  archived: { tone: 'neutral', label: 'archived', glyph: 'bin' },
 }
 
 export function StatusTag({ status }: { status: FailureStatus | ProjectStatus }) {
@@ -203,7 +210,7 @@ export function StatusTag({ status }: { status: FailureStatus | ProjectStatus })
   const s = map[status]
   if (!s) return null
   return (
-    <span className={`inline-flex items-center gap-1 micro uppercase ${s.tone}`}>
+    <span className={`pill ${s.tone === 'neutral' ? '' : `pill-${s.tone}`}`}>
       <Glyph name={s.glyph} size={11} />
       {s.label}
     </span>
@@ -211,11 +218,19 @@ export function StatusTag({ status }: { status: FailureStatus | ProjectStatus })
 }
 
 export function SeverityTag({ level }: { level: Severity }) {
-  const tone = level === 'high' ? 'text-error' : level === 'medium' ? 'text-warn' : 'text-tertiary'
-  return <span className={`micro uppercase ${tone}`}>{level} severity</span>
+  const tone = level === 'high' ? 'bg-error' : level === 'medium' ? 'bg-warn' : 'bg-tertiary'
+  return (
+    <span className="pill">
+      <span className={`w-1.5 h-1.5 rounded-full ${tone}`} aria-hidden="true" />
+      {level} severity
+    </span>
+  )
 }
 
-/* ---------------------------------------------------------------- layout */
+/* ---------------------------------------------------------------- layout
+ * These answer to their container, not the screen: a field stacks its label
+ * over its value in a narrow window and sits beside it in a wide one.
+ */
 
 export function Field({
   label,
@@ -227,7 +242,7 @@ export function Field({
   hint?: string
 }) {
   return (
-    <div className="grid grid-cols-[minmax(7.5rem,auto)_1fr] gap-x-4 gap-y-1 items-baseline">
+    <div className="grid grid-cols-1 @sm:grid-cols-[minmax(7.5rem,auto)_1fr] gap-x-4 gap-y-0.5 items-baseline">
       <dt className="field-label">{label}</dt>
       <dd className="text-[15px] text-primary">
         {children}
@@ -240,14 +255,14 @@ export function Field({
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-7 first:mt-0">
-      <h2 className="field-label mb-2">{title}</h2>
-      <div className="prose-col text-[15px] leading-[1.6] text-secondary">{children}</div>
+      <h2 className="field-label section-title mb-2.5">{title}</h2>
+      <div className="prose-col text-[15px] leading-[1.65] text-secondary">{children}</div>
     </section>
   )
 }
 
 export function Rule() {
-  return <hr className="my-6 border-0 border-t border-subtle" />
+  return <hr className="my-6 border-0 border-t border-subtle/70" />
 }
 
 export function Mono({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -255,18 +270,14 @@ export function Mono({ children, className = '' }: { children: React.ReactNode; 
 }
 
 export function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="mono text-[12px] px-1.5 py-0.5 rounded-sm bg-raised text-secondary border border-subtle">
-      {children}
-    </span>
-  )
+  return <span className="pill mono text-[12px]">{children}</span>
 }
 
 export function Meter({ value, max, tone = 'bg-ok' }: { value: number; max: number; tone?: string }) {
   const pct = max > 0 ? Math.round((value / max) * 100) : 0
   return (
-    <div className="h-1.5 w-full rounded-sm bg-raised overflow-hidden" aria-hidden="true">
-      <div className={`h-full ${tone}`} style={{ width: `${pct}%` }} />
+    <div className="h-1.5 w-full rounded-full bg-raised overflow-hidden" aria-hidden="true">
+      <div className={`h-full rounded-full ${tone}`} style={{ width: `${pct}%` }} />
     </div>
   )
 }
@@ -277,7 +288,7 @@ export function Meter({ value, max, tone = 'bg-ok' }: { value: number; max: numb
  */
 export function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <span className="mono text-[12px] text-tertiary border border-dashed border-subtle px-1.5 py-0.5 rounded-sm">
+    <span className="inline-block mono text-[12px] text-tertiary border border-dashed border-strong/70 px-2.5 py-1 rounded-full">
       {children}
     </span>
   )
@@ -301,7 +312,7 @@ export function ExternalLink({ href, children }: { href: string; children: React
 /** A draft marker. Shown on any crash report Mudit has not yet confirmed. */
 export function DraftNotice() {
   return (
-    <p className="mono text-[12px] text-warn border border-warn/40 bg-warn/5 rounded-sm px-2 py-1.5">
+    <p className="mono text-[12px] text-warn border border-warn/35 bg-warn/8 rounded-2xl px-3 py-2">
       Drafted from commit history — not yet confirmed by the author. The commit
       cited below is real; the account of it is reconstructed.
     </p>

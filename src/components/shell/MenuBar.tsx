@@ -57,8 +57,15 @@ export function MenuBar() {
   return (
     <header
       ref={barRef}
-      className="glass fixed top-0 inset-x-0 z-[500] flex items-center gap-1 px-2 border-x-0 border-t-0 rounded-none"
-      style={{ height: TOP_BAR_H }}
+      className="glass fixed top-0 inset-x-0 z-[500] flex items-center gap-1 border-x-0 border-t-0 rounded-none"
+      // On a phone the bar grows by the status-bar inset and keeps its content
+      // out of the notch and the rounded corners. Everywhere else these are 0.
+      style={{
+        height: `calc(${TOP_BAR_H}px + var(--sat))`,
+        paddingTop: 'var(--sat)',
+        paddingLeft: 'calc(8px + var(--sal))',
+        paddingRight: 'calc(8px + var(--sar))',
+      }}
     >
       <Menu
         id="system"
@@ -73,7 +80,7 @@ export function MenuBar() {
         items={<SystemItems />}
       />
 
-      <span className="mono text-[12px] text-primary font-medium px-1.5 truncate max-w-[9rem]">
+      <span className="mono text-[12px] text-primary font-medium px-1 sm:px-1.5 truncate max-w-[9rem]">
         {focusedTitle}
       </span>
 
@@ -354,7 +361,7 @@ function HelpItems() {
 /* ------------------------------------------------------------ status items */
 
 function Divider() {
-  return <span className="w-px h-3.5 bg-subtle mx-0.5" aria-hidden="true" />
+  return <span className="hidden sm:block w-px h-3.5 bg-subtle mx-0.5" aria-hidden="true" />
 }
 
 function BarButton({
@@ -467,13 +474,11 @@ function Clock() {
 
   // Null until mounted: the server has no clock in the visitor's timezone, and
   // rendering one would be a hydration mismatch on every single load.
-  const label = now
-    ? now.toLocaleString('en-GB', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-      }) + ` ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  const date = now ? now.toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) : ''
+  const time = now
+    ? `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
     : '—'
+  const label = date ? `${date} ${time}` : time
 
   return (
     <span className="flex items-center gap-1.5">
@@ -494,10 +499,16 @@ function Clock() {
         className="mono text-[12px] text-secondary tabular-nums hover:text-primary px-1 rounded-sm"
         aria-label={stuck ? 'System time has stopped. Activate to resume.' : `System time ${label}`}
       >
-        {label}
+        {/* A phone has its own clock six millimetres above this one; the
+            date is what gets dropped when the bar is short of room. */}
+        {date && <span className="hidden sm:inline">{date} </span>}
+        {time}
       </button>
       {note && (
-        <span className="glass absolute right-2 top-9 rounded-md mono text-[12px] text-warn px-2 py-1 anim-notice">
+        <span
+          className="glass absolute right-2 max-w-[calc(100vw-16px)] rounded-md mono text-[12px] text-warn px-2 py-1 anim-notice"
+          style={{ top: 'calc(100% + 6px)' }}
+        >
           SYSTEM TIME — {note}
         </span>
       )}

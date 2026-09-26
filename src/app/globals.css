@@ -93,6 +93,29 @@
   --app-contact: #4790c9;
   --app-terminal: #3a4750;
   --app-bin: #616b71;
+
+  /* The notch, the home indicator and the rounded corners of a phone. The
+   * viewport is `cover`, so without these the menu bar sits under the status
+   * bar and the dock under the home indicator. Zero everywhere else. */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+
+  /* The interior material — see "interior kit" below. */
+  --orb-base: #1e2327;
+  --orb-line: rgb(255 255 255 / 0.075);
+  --orb-line-strong: rgb(255 255 255 / 0.16);
+  --orb-hi: rgb(255 255 255 / 0.1);
+  --orb-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 34px -18px rgb(0 0 0 / 0.7);
+  --glow-a: 44%;
+  --glow-b: 30%;
+  --inset-bg: rgb(0 0 0 / 0.18);
+  --tile-bg: rgb(255 255 255 / 0.03);
+  --tile-bg-hover: rgb(255 255 255 / 0.06);
+  --pill-bg: rgb(255 255 255 / 0.06);
+  --seg-on-bg: #e9ece8;
+  --seg-on-fg: #15181a;
 }
 
 :root[data-theme='light'] {
@@ -155,6 +178,20 @@
   --app-contact: #3475ab;
   --app-terminal: #36434c;
   --app-bin: #545d63;
+
+  --orb-base: #faf8f4;
+  --orb-line: rgb(60 50 35 / 0.09);
+  --orb-line-strong: rgb(60 50 35 / 0.2);
+  --orb-hi: rgb(255 255 255 / 0.95);
+  --orb-shadow: 0 1px 2px rgb(60 50 35 / 0.08), 0 14px 34px -18px rgb(60 50 35 / 0.3);
+  --glow-a: 40%;
+  --glow-b: 34%;
+  --inset-bg: rgb(255 255 255 / 0.6);
+  --tile-bg: rgb(255 255 255 / 0.5);
+  --tile-bg-hover: rgb(255 255 255 / 0.85);
+  --pill-bg: rgb(60 50 35 / 0.05);
+  --seg-on-bg: #ffffff;
+  --seg-on-fg: #1a1d20;
 }
 
 /* ------------------------------------------------------- tailwind bridge
@@ -961,31 +998,185 @@ body {
 }
 
 /* ---------------------------------------------------------- terminal
- * Its own surface, darker than any window in the system. A terminal that
- * matches the desktop chrome does not read as a terminal.
+ * Its own surface, darker than any window in the system — a terminal that
+ * matches the desktop chrome does not read as a terminal — lit faintly from
+ * two corners in the same way as every card in the system.
  */
 .terminal {
   background:
-    radial-gradient(130% 70% at 50% -18%, rgb(255 255 255 / 0.055), transparent 62%),
+    radial-gradient(90% 55% at 0% 0%, rgb(63 158 124 / 0.1), transparent 62%),
+    radial-gradient(80% 55% at 100% 100%, rgb(110 120 200 / 0.09), transparent 62%),
     linear-gradient(180deg, var(--term-bg-top), var(--term-bg-bottom));
+  --term-line: rgb(255 255 255 / 0.07);
+  --term-fill: rgb(255 255 255 / 0.04);
+  --term-fill-hover: rgb(255 255 255 / 0.085);
 }
 
 :root[data-theme='light'] .terminal {
   background:
-    radial-gradient(130% 70% at 50% -18%, rgb(255 255 255 / 0.9), transparent 62%),
+    radial-gradient(90% 55% at 0% 0%, rgb(63 158 124 / 0.12), transparent 62%),
+    radial-gradient(80% 55% at 100% 100%, rgb(126 110 200 / 0.1), transparent 62%),
     linear-gradient(180deg, var(--term-bg-top), var(--term-bg-bottom));
+  --term-line: rgb(60 50 35 / 0.1);
+  --term-fill: rgb(255 255 255 / 0.6);
+  --term-fill-hover: rgb(255 255 255 / 0.95);
 }
 
-/* The prompt rail sits on its own plane, so the line you type on is never
- * mistaken for the last line of output. */
+.term-banner {
+  border-radius: 18px;
+  padding: 14px;
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgb(63 158 124 / 0.2), transparent 60%),
+    radial-gradient(90% 100% at 100% 100%, rgb(126 132 232 / 0.14), transparent 62%),
+    var(--term-fill);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.07),
+    inset 0 0 0 1px var(--term-line);
+}
+
+.term-stat {
+  border-radius: 12px;
+  padding: 10px 10px 8px;
+  background: rgb(0 0 0 / 0.22);
+  box-shadow: inset 0 0 0 1px var(--term-line);
+}
+
+:root[data-theme='light'] .term-stat {
+  background: rgb(255 255 255 / 0.65);
+}
+
+.term-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--text-tertiary);
+  box-shadow: inset 0 0 0 1px var(--term-line);
+}
+
+.term-block + .term-block {
+  margin-top: 10px;
+}
+
+/* Output hangs off a dotted rail under its command. */
+.term-out {
+  margin: 3px 0 0 4px;
+  padding-left: 14px;
+  background-image: radial-gradient(circle, var(--line-strong) 0.8px, transparent 1.1px);
+  background-size: 1px 5px;
+  background-repeat: repeat-y;
+  background-position: left top;
+}
+
+.term-cwd {
+  color: var(--signal-info);
+}
+
+.term-token {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--term-fill);
+  box-shadow: inset 0 0 0 1px var(--term-line);
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.term-token.is-dir {
+  color: var(--signal-info);
+}
+
+.term-token:hover {
+  color: var(--text-primary);
+  background: var(--term-fill-hover);
+}
+
+.term-dock {
+  padding-bottom: calc(12px + var(--safe-b, 0px));
+}
+
+.term-chips {
+  display: flex;
+  gap: 6px;
+  padding: 2px 0 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+}
+
+.term-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.term-chip {
+  flex: none;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--term-fill);
+  box-shadow: inset 0 0 0 1px var(--term-line);
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.term-chip:hover {
+  color: var(--text-primary);
+  background: var(--term-fill-hover);
+}
+
+.term-chip:active,
+.term-token:active {
+  transform: scale(0.96);
+}
+
+/* The command line: a capsule on its own plane, so the line you type on is
+ * never mistaken for the last line of output. */
 .term-rail {
-  background: rgb(255 255 255 / 0.035);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 46px;
+  padding: 0 6px 0 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: var(--term-fill);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.07),
+    inset 0 0 0 1px var(--term-line),
+    0 10px 28px -14px rgb(0 0 0 / 0.7);
+  transition: box-shadow 180ms ease;
 }
 
 :root[data-theme='light'] .term-rail {
-  background: rgb(0 0 0 / 0.03);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    inset 0 0 0 1px var(--term-line),
+    0 10px 28px -16px rgb(60 50 35 / 0.35);
+}
+
+.term-send {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  color: #0d1216;
+  background: var(--signal-ok);
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.term-send[data-idle] {
+  opacity: 0.35;
+}
+
+.term-send:active {
+  transform: scale(0.92);
 }
 
 /* A form control does not inherit the font of its container — which is how the
@@ -997,9 +1188,17 @@ body {
   padding: 0;
 }
 
-/* The focus ring is the caret, not a box. A full-width outline around the
- * command line is the one thing no terminal has ever had — but focus still has
- * to be visible without it, so the rail lights its left edge. */
+/* iOS zooms the page into any field set smaller than 16px the moment it takes
+ * focus, and does not zoom back out. On a touchscreen the command line is
+ * simply set at 16px. */
+@media (pointer: coarse) {
+  .term-rail {
+    font-size: 16px;
+  }
+}
+
+/* The focus ring is the caret, not a box — but focus still has to be visible
+ * without one, so the capsule lights its edge. */
 .terminal input:focus-visible {
   outline: none;
 }
@@ -1007,13 +1206,8 @@ body {
 .term-rail:has(input:focus-visible) {
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.07),
-    inset 2px 0 0 var(--signal-ok);
-}
-
-:root[data-theme='light'] .term-rail:has(input:focus-visible) {
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.9),
-    inset 2px 0 0 var(--signal-ok);
+    inset 0 0 0 1px color-mix(in oklab, var(--signal-ok) 60%, transparent),
+    0 0 0 3px color-mix(in oklab, var(--signal-ok) 18%, transparent);
 }
 
 /* A block caret, drawn rather than borrowed: the native one is a hairline, and
@@ -1046,5 +1240,379 @@ body {
   .term-caret {
     animation: none;
     opacity: 0.85;
+  }
+}
+
+/* ------------------------------------------------------------ interior kit
+ * What the inside of an application is made of. Soft cards lit from two
+ * corners in a tone's own pair of colours, recessed panels for label/value
+ * pairs, pills, dotted tracks and a dot-matrix face for numbers. Every value
+ * is a token, so the light theme re-values the whole set at once.
+ */
+.tone-ok { --t1: #3f9e7c; --t2: #a9b95a; --tc: var(--signal-ok); }
+.tone-warn { --t1: #c48c2c; --t2: #c9788c; --tc: var(--signal-warn); }
+.tone-error { --t1: #c0503c; --t2: #d0875a; --tc: var(--signal-error); }
+.tone-info { --t1: #3a8db0; --t2: #7e84e8; --tc: var(--signal-info); }
+.tone-violet { --t1: #8a67c4; --t2: #cf7bb0; --tc: #a58ad6; }
+.tone-teal { --t1: #2f93a8; --t2: #4ac6a0; --tc: #4fb3a2; }
+.tone-neutral { --t1: #6b7478; --t2: #8d8a78; --tc: var(--text-secondary); }
+
+@layer components {
+  .orb {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: block;
+    border-radius: 24px;
+    padding: 16px;
+    color: var(--text-primary);
+    background:
+      radial-gradient(120% 95% at 0% 0%, color-mix(in oklab, var(--t1) var(--glow-a), transparent), transparent 62%),
+      radial-gradient(100% 90% at 100% 100%, color-mix(in oklab, var(--t2) var(--glow-b), transparent), transparent 66%),
+      var(--orb-base);
+    box-shadow:
+      inset 0 1px 0 var(--orb-hi),
+      inset 0 0 0 1px var(--orb-line),
+      var(--orb-shadow);
+  }
+
+  /* Grain and a soft top light. The grain is what stops a large, smooth
+   * gradient banding on an 8-bit panel; the light is what gives the card a
+   * surface rather than a fill. */
+  .orb::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: inherit;
+    background-image:
+      radial-gradient(70% 45% at 28% -6%, rgb(255 255 255 / 0.1), transparent 70%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E");
+    background-size: auto, 160px 160px;
+  }
+
+  .inset-panel {
+    border-radius: 16px;
+    padding: 12px 14px;
+    background: var(--inset-bg);
+    box-shadow:
+      inset 0 0 0 1px var(--orb-line),
+      inset 0 1px 2px rgb(0 0 0 / 0.12);
+  }
+
+  .tile {
+    display: block;
+    border-radius: 18px;
+    background: var(--tile-bg);
+    box-shadow:
+      inset 0 0 0 1px var(--orb-line),
+      inset 0 1px 0 color-mix(in srgb, var(--orb-hi) 50%, transparent);
+    transition: background-color 180ms ease, transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--text-secondary);
+    background: var(--pill-bg);
+    box-shadow: inset 0 0 0 1px var(--orb-line);
+  }
+}
+
+a.tile:hover {
+  background: var(--tile-bg-hover);
+}
+
+a.tile:active,
+.orb-link:active {
+  transform: scale(0.992);
+}
+
+.orb-link {
+  transition:
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 260ms ease;
+}
+
+.orb-link:hover {
+  transform: translateY(-2px);
+}
+
+.orb-link:focus-visible,
+a.tile:focus-visible {
+  outline-offset: 3px;
+  border-radius: 24px;
+}
+
+.pill-ok { color: var(--signal-ok); background: color-mix(in oklab, var(--signal-ok) 13%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--signal-ok) 26%, transparent); }
+.pill-warn { color: var(--signal-warn); background: color-mix(in oklab, var(--signal-warn) 13%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--signal-warn) 26%, transparent); }
+.pill-error { color: var(--signal-error); background: color-mix(in oklab, var(--signal-error) 13%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--signal-error) 28%, transparent); }
+.pill-info { color: var(--signal-info); background: color-mix(in oklab, var(--signal-info) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--signal-info) 28%, transparent); }
+
+:root[data-theme='dark'] .pill-error { color: #d98372; }
+:root[data-theme='dark'] .pill-info { color: #8fb0c4; }
+
+.arrow-dot {
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 999px;
+  color: var(--text-primary);
+  background: var(--pill-bg);
+  box-shadow:
+    inset 0 1px 0 var(--orb-hi),
+    inset 0 0 0 1px var(--orb-line);
+  transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:is(.orb-link, a.tile):hover .arrow-dot {
+  transform: translate(1px, -1px) scale(1.06);
+}
+
+.round-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--pill-bg);
+  box-shadow:
+    inset 0 1px 0 var(--orb-hi),
+    inset 0 0 0 1px var(--orb-line);
+  transition: background-color 180ms ease;
+}
+
+.round-link:hover {
+  background: var(--tile-bg-hover);
+}
+
+.dot-number {
+  display: block;
+  overflow: visible;
+}
+
+.dot-off {
+  fill: currentColor;
+  opacity: 0.12;
+}
+
+/* A label, then a dotted leader to the edge. */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background-image: radial-gradient(circle, var(--orb-line-strong) 0.9px, transparent 1.3px);
+  background-size: 6px 2px;
+  background-repeat: repeat-x;
+}
+
+/* The short bar between two stats in an inset panel. */
+.dash-mark {
+  position: relative;
+  flex: 1;
+  align-self: center;
+  height: 1px;
+  min-width: 24px;
+  max-width: 140px;
+  margin-inline: auto;
+  background: var(--orb-line-strong);
+}
+
+.dash-mark > span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--text-primary);
+  transform: translate(-50%, -50%);
+}
+
+/* ------ track */
+.track-line {
+  position: relative;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--orb-line-strong);
+}
+
+.track-fill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--tc) 35%, transparent), var(--tc));
+}
+
+.track-marker {
+  position: absolute;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 10px solid var(--text-primary);
+  transform: translate(-50%, -35%);
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.35));
+}
+
+.track-ticks {
+  height: 4px;
+  margin-top: 10px;
+  background-image: radial-gradient(circle, var(--text-tertiary) 0.9px, transparent 1.3px);
+  background-size: 11px 4px;
+  background-repeat: repeat-x;
+  opacity: 0.55;
+}
+
+/* ------ frequency lamps */
+.lamp {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.lamp-on {
+  background: var(--signal-ok);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--signal-ok) 22%, transparent);
+}
+
+/* ------ segmented filter */
+.segmented {
+  display: flex;
+  gap: 2px;
+  width: max-content;
+  max-width: 100%;
+  padding: 3px;
+  border-radius: 999px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--pill-bg);
+  box-shadow: inset 0 0 0 1px var(--orb-line);
+}
+
+.segmented::-webkit-scrollbar {
+  display: none;
+}
+
+.seg {
+  flex: none;
+}
+
+.seg > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 13px;
+  border-radius: 999px;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.seg:hover > span {
+  color: var(--text-primary);
+}
+
+.seg:has(input:checked) > span {
+  color: var(--seg-on-fg);
+  background: var(--seg-on-bg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2), 0 6px 14px -8px rgb(0 0 0 / 0.5);
+}
+
+.seg:has(input:focus-visible) > span {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.seg-count {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+/* ------ timeline: an investigation, step by step, on a dotted rail */
+.timeline > li {
+  position: relative;
+  padding-left: 24px;
+  padding-bottom: 12px;
+}
+
+.timeline > li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 7px;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.5px var(--tc, var(--text-tertiary));
+}
+
+.timeline > li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 20px;
+  bottom: 0;
+  width: 1px;
+  background-image: radial-gradient(circle, var(--orb-line-strong) 0.8px, transparent 1.1px);
+  background-size: 1px 5px;
+  background-repeat: repeat-y;
+}
+
+/* Every page leaves room for the home indicator when it is in a phone sheet. */
+.app-page {
+  padding-bottom: calc(28px + var(--safe-b, 0px));
+}
+
+/* With the keyboard up, the home indicator is under the keyboard, not under
+ * the page, so the inset is spent. */
+.sheet-body {
+  --safe-b: max(0px, calc(var(--sab) - var(--kb, 0px)));
+}
+
+/* The phone sheet: a card that rises from the bottom and stops under the menu
+ * bar, its top corners rounded so it reads as lying over the home screen. */
+.sheet {
+  overflow: hidden;
+  border-radius: 20px 20px 0 0;
+  background: var(--surface-window);
+  box-shadow:
+    inset 0 1px 0 var(--glass-line),
+    0 -12px 40px -12px rgb(0 0 0 / 0.55);
+}
+
+@media (forced-colors: active) {
+  .orb,
+  .tile,
+  .inset-panel,
+  .pill,
+  .segmented {
+    border: 1px solid CanvasText;
   }
 }

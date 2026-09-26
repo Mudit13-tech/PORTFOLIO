@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useRef, useSyncExternalStore } from 'react'
-import { BP_DESKTOP, BP_TABLET } from './constants'
+import { BP_DESKTOP, BP_SHORT, BP_TABLET } from './constants'
 import { assertIconFinish } from './icons'
 import { readFlag } from './persist'
 import { createStore, type Store } from './store'
@@ -77,7 +77,7 @@ export function useSystemApi(): Store {
 export function useShellKind(): ShellKind {
   return useSyncExternalStore(
     (fn) => {
-      const mq = window.matchMedia(`(max-width: ${BP_DESKTOP - 1}px)`)
+      const mq = window.matchMedia(`(max-width: ${BP_DESKTOP - 1}px), (max-height: ${BP_SHORT - 1}px)`)
       mq.addEventListener('change', fn)
       window.addEventListener('resize', fn)
       return () => {
@@ -87,7 +87,7 @@ export function useShellKind(): ShellKind {
     },
     () => {
       const w = window.innerWidth
-      if (w < BP_TABLET) return 'mobile' as const
+      if (w < BP_TABLET || window.innerHeight < BP_SHORT) return 'mobile' as const
       if (w < BP_DESKTOP) return 'tablet' as const
       return 'desktop' as const
     },

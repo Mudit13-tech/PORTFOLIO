@@ -12,8 +12,13 @@ import { APP_ORDER, APP_PATH, type AppRef } from '@/os/routes'
  */
 
 export interface Line {
-  kind: 'in' | 'out' | 'err' | 'note'
+  /** `list` is a row of names — `ls` output — drawn as tappable tokens. */
+  kind: 'in' | 'out' | 'err' | 'note' | 'list'
   text: string
+  /** For `in`: the directory the command was typed in, so old prompts stay true. */
+  cwd?: string
+  /** For `list`: the directory the names belong to, so a tapped one resolves. */
+  dir?: string
 }
 
 export interface Result {
@@ -121,7 +126,7 @@ export function run(input: string, cwd: string): Result & { cwd: string } {
       const dir = arg ? resolve(cwd, arg) : cwd
       const entries = TREE[dir]
       if (!entries) return { lines: [{ kind: 'err', text: `ls: ${dir}: no such directory` }], cwd }
-      return { lines: out(entries.join('  ')), cwd }
+      return { lines: [{ kind: 'list', text: entries.join('  '), dir }], cwd }
     }
 
     case 'cd': {

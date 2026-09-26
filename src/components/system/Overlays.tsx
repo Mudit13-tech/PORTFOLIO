@@ -119,7 +119,10 @@ function DevMode() {
   if (!on) return null
 
   return (
-    <div className="glass fixed bottom-24 right-3 z-[850] rounded-xl p-3 mono text-[12px] w-52">
+    <div
+      className="glass fixed right-3 z-[850] rounded-xl p-3 mono text-[12px] w-52"
+      style={{ bottom: 'calc(96px + var(--sab))' }}
+    >
       <div className="flex items-center justify-between mb-2">
         <span className="text-secondary">DEV MODE</span>
         <button type="button" onClick={() => api.toggleDevMode()} aria-label="Close dev mode">
@@ -180,7 +183,10 @@ function UpdateNotice() {
   if (!show) return null
 
   return (
-    <div className="glass fixed top-10 right-3 z-[860] anim-notice rounded-xl px-3 py-2 flex items-center gap-3">
+    <div
+      className="glass fixed right-3 z-[860] anim-notice rounded-xl px-3 py-2 flex items-center gap-3 max-w-[calc(100vw-24px)]"
+      style={{ top: 'calc(40px + var(--sat))' }}
+    >
       <span className="mono text-[12px] text-secondary">◈ SYSTEM UPDATE AVAILABLE</span>
       <button
         type="button"

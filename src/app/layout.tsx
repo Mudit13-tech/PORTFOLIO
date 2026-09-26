@@ -31,6 +31,10 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
+  // Android: the keyboard shrinks the layout viewport instead of covering it,
+  // so the terminal's command line rides up with it. iOS ignores this and is
+  // handled in the phone shell.
+  interactiveWidget: 'resizes-content',
   colorScheme: 'dark light',
   themeColor: [
     { media: '(prefers-color-scheme: dark)', color: '#14171A' },

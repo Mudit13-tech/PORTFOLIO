@@ -24,6 +24,19 @@ export const MAX_WINDOWS = 6
 
 export const BP_TABLET = 768
 export const BP_DESKTOP = 1024
+/**
+ * Below this height the desktop chrome does not fit: a phone on its side is
+ * 844 wide but 390 tall, which leaves a 276px strip between the menu bar and
+ * the dock. Short screens get the phone shell whatever their width.
+ */
+export const BP_SHORT = 540
+
+/** Where the desk furniture sits, so new windows can open beside it. */
+export const WIDGET_GUTTER = 368
+export const ICON_GUTTER = 232
+/** Below this height the desk icons take three columns, and a wider gutter. */
+export const ICONS_SHORT_H = 680
+export const ICON_GUTTER_SHORT = 332
 
 /** Drag within this distance of an edge arms the snap preview. */
 export const SNAP_EDGE = 24

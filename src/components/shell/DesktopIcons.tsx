@@ -1,8 +1,8 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useSyncExternalStore } from 'react'
 import { countFor } from '@/lib/derived'
-import { DOCK_H, TOP_BAR_H } from '@/os/constants'
+import { DOCK_H, ICONS_SHORT_H, TOP_BAR_H } from '@/os/constants'
 import { markOrigin } from '@/os/motion'
 import { APP_LABEL, APP_ORDER, APP_PATH, APP_SUBTITLE, APP_TITLE } from '@/os/routes'
 import { AppIcon3D } from '@/components/ui'
@@ -20,12 +20,31 @@ import { AppIcon3D } from '@/components/ui'
  * has thirty seconds for, and hiding the content behind a double-click is a
  * joke at their expense.
  */
+/**
+ * Two columns need about 680px of height to clear the dock. A shorter screen —
+ * a 13" laptop with the bookmarks bar showing — gets three, so the last row
+ * never slides underneath it.
+ */
+const SHORT = `(max-height: ${ICONS_SHORT_H - 1}px)`
+
+function useColumns(): 2 | 3 {
+  return useSyncExternalStore(
+    (fn) => {
+      const mq = window.matchMedia(SHORT)
+      mq.addEventListener('change', fn)
+      return () => mq.removeEventListener('change', fn)
+    },
+    () => (window.matchMedia(SHORT).matches ? 3 : 2),
+    () => 2,
+  )
+}
+
 export function DesktopIcons() {
   const gridRef = useRef<HTMLUListElement>(null)
   const [active, setActive] = useState(0)
+  const cols = useColumns()
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    const cols = 2
     const last = APP_ORDER.length - 1
     let next = active
     if (e.key === 'ArrowRight') next = Math.min(active + 1, last)
@@ -45,8 +64,8 @@ export function DesktopIcons() {
       ref={gridRef}
       onKeyDown={onKeyDown}
       aria-label="Applications"
-      className="absolute right-3.5 grid grid-cols-[repeat(2,100px)] gap-y-1 justify-items-center content-start"
-      style={{ top: TOP_BAR_H + 12, bottom: DOCK_H }}
+      className="absolute right-3.5 grid gap-y-1 justify-items-center content-start"
+      style={{ top: TOP_BAR_H + 12, bottom: DOCK_H, gridTemplateColumns: `repeat(${cols}, 100px)` }}
     >
       {APP_ORDER.map((id, i) => {
         const count = countFor(id)

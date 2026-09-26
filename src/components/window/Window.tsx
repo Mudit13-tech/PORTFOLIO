@@ -117,7 +117,9 @@ export function Window({
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto overscroll-contain">{children}</div>
+      {/* A size container: the application inside lays itself out for the
+          width of this window, not the width of the screen. */}
+      <div className="@container flex-1 overflow-auto overscroll-contain">{children}</div>
 
       {!win.maximized && (
         <>

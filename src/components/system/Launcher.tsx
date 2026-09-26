@@ -145,7 +145,7 @@ export function Launcher() {
             onKeyDown={onKeyDown}
             placeholder="projects, crash reports, modules…"
             aria-label="Search projects, crash reports, modules and experiments"
-            className="flex-1 bg-transparent text-[15px] text-primary placeholder:text-tertiary"
+            className="flex-1 bg-transparent text-[15px] pointer-coarse:text-[16px] text-primary placeholder:text-tertiary"
           />
           <kbd className="mono text-[11px] text-tertiary border border-subtle rounded px-1.5 py-0.5">
             esc
