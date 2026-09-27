@@ -1,0 +1,612 @@
+/* ========================================================== lock screen
+ * A surface of its own over everything else, including the menu bar — it is
+ * the one layer allowed there, because it is the door and one scroll opens it.
+ *
+ * `--p` is how far it has been scrolled away, 0 to 1, written by
+ * LockScreen.tsx on every scroll. The glass name lives in the shader; the
+ * clock, the notifications and the controls read `--p` here, so they lift and
+ * blur a little faster than the sheet they are on, which is what gives the
+ * unlock its depth. The desk underneath grows back to full size as it goes.
+ */
+
+.lock {
+  --p: 0;
+  --lk-ink: #f3f5f2;
+  --lk-ink-2: rgb(243 245 242 / 0.72);
+  --lk-ink-3: rgb(243 245 242 / 0.5);
+  --lk-glass: rgb(16 22 26 / 0.36);
+  --lk-glass-hi: rgb(255 255 255 / 0.12);
+  --lk-line: rgb(255 255 255 / 0.12);
+  --lk-shadow: 0 1px 2px rgb(0 0 0 / 0.25), 0 12px 32px -14px rgb(0 0 0 / 0.55);
+
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  color: var(--lk-ink);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root[data-theme='light'] .lock {
+  --lk-ink: #13171a;
+  --lk-ink-2: rgb(19 23 26 / 0.7);
+  --lk-ink-3: rgb(19 23 26 / 0.5);
+  --lk-glass: rgb(255 255 255 / 0.42);
+  --lk-glass-hi: rgb(255 255 255 / 0.9);
+  --lk-line: rgb(255 255 255 / 0.65);
+  --lk-shadow: 0 1px 2px rgb(60 50 35 / 0.1), 0 12px 32px -14px rgb(60 50 35 / 0.3);
+}
+
+/* Already unlocked this session: hidden before the first frame, by the
+   pre-paint script, so a reload never flashes the door. */
+:root[data-unlocked] .lock {
+  display: none;
+}
+
+.lock-scroller {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  outline: none;
+}
+
+.lock-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.lock[data-unlocking] .lock-scroller {
+  scroll-snap-type: none;
+}
+
+.lock-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  scroll-snap-align: start;
+  padding:
+    calc(10px + var(--sat)) calc(18px + var(--sar)) calc(10px + var(--sab)) calc(18px + var(--sal));
+  box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.5);
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: pan-y;
+}
+
+.lock-spacer {
+  height: 100%;
+  scroll-snap-align: start;
+  pointer-events: none;
+}
+
+.lock-bg,
+.lock-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+}
+
+.lock-canvas {
+  display: block;
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+
+.lock[data-glass='on'] .lock-canvas {
+  opacity: 1;
+}
+
+.lock-dim {
+  color: var(--lk-ink-3);
+}
+
+/* ----------------------------------------------------------- entrance
+ * Each piece comes up out of a heavy blur and a slight zoom, one after the
+ * other — the screen assembling itself rather than appearing.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .lock [data-in] {
+    animation: lock-in 1100ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: var(--d, 0ms);
+  }
+}
+
+@keyframes lock-in {
+  from {
+    opacity: 0;
+    filter: blur(20px);
+    transform: scale(1.1);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+/* --------------------------------------------------------- status bar */
+.lock-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 22px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  color: var(--lk-ink-2);
+}
+
+.lock-signal {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 11px;
+}
+
+.lock-signal > span:not(.sr-only) {
+  width: 3px;
+  height: calc(4px + var(--b) * 2.3px);
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.3;
+}
+
+.lock-signal > span.on {
+  opacity: 1;
+}
+
+.lock-battery {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.lock-battery-cell {
+  position: relative;
+  width: 22px;
+  height: 11px;
+  padding: 1.5px;
+  border-radius: 3.5px;
+  box-shadow: inset 0 0 0 1px currentColor;
+  opacity: 0.9;
+}
+
+.lock-battery-cell::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: 3.5px;
+  width: 1.5px;
+  height: 4px;
+  border-radius: 0 1px 1px 0;
+  background: currentColor;
+}
+
+.lock-battery-cell > span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+/* --------------------------------------------------------------- time */
+.lock-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: clamp(14px, 4vh, 40px);
+  text-align: center;
+  transform: translate3d(0, calc(var(--p) * 18vh), 0) scale(calc(1 - var(--p) * 0.08));
+  opacity: calc(1 - var(--p) * 1.7);
+}
+
+.lock-padlock {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: var(--lk-ink-2);
+}
+
+.lock-date {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: var(--lk-ink-2);
+  min-height: 1.4em;
+}
+
+.lock-time {
+  margin-top: 2px;
+  font-size: clamp(58px, 17vw, 104px);
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+  min-height: 1em;
+  text-shadow: 0 2px 30px rgb(0 0 0 / 0.18);
+}
+
+/* --------------------------------------------------------------- name */
+.lock-middle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  text-align: center;
+}
+
+/* The accessible, selectable name, and the layout the glass is drawn from.
+   Once the shader is live it goes transparent and the glass stands in its
+   place; without WebGL it is the name, in a frosted fill. */
+.lock-name {
+  font-size: clamp(64px, 23.5vw, 136px);
+  line-height: 0.92;
+  font-weight: 650;
+  letter-spacing: -0.055em;
+  color: transparent;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.96), rgb(255 255 255 / 0.62));
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 4px 24px rgb(0 0 0 / 0.22));
+  transition: opacity 900ms ease, filter 900ms ease;
+}
+
+:root[data-theme='light'] .lock-name {
+  background-image: linear-gradient(180deg, rgb(19 23 26 / 0.92), rgb(19 23 26 / 0.62));
+  filter: drop-shadow(0 4px 20px rgb(255 255 255 / 0.5));
+}
+
+.lock-name > span {
+  display: block;
+}
+
+.lock[data-glass='on'] .lock-name {
+  opacity: 0;
+  filter: none;
+}
+
+.lock-role {
+  margin-top: clamp(12px, 2.4vh, 22px);
+  font-size: 13.5px;
+  color: var(--lk-ink-2);
+  transform: translate3d(0, calc(var(--p) * 10vh), 0);
+  opacity: calc(1 - var(--p) * 1.8);
+}
+
+/* A wide screen takes the name on one line. */
+@media (min-aspect-ratio: 1/1) and (min-width: 640px) {
+  .lock-name {
+    font-size: clamp(72px, min(11.5vw, 21vh), 210px);
+    word-spacing: -0.1em;
+  }
+
+  .lock-name > span {
+    display: inline-block;
+  }
+
+  .lock-time {
+    font-size: clamp(56px, min(7vw, 12vh), 112px);
+  }
+}
+
+/* ------------------------------------------------------ notifications */
+.lock-notes {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 440px;
+  min-height: 112px;
+  margin: 0 auto 14px;
+  transform: translate3d(0, calc(var(--p) * -6vh), 0);
+  opacity: calc(1 - var(--p) * 2);
+}
+
+.lock-notes-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 4px 7px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--lk-ink-2);
+}
+
+.lock-notes-count {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  background: var(--lk-glass);
+  box-shadow: inset 0 0 0 1px var(--lk-line);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  backdrop-filter: blur(20px) saturate(1.6);
+}
+
+.lock-notes-list {
+  position: relative;
+  display: grid;
+  gap: 7px;
+}
+
+.lock-note {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 13px 10px 10px;
+  border-radius: 20px;
+  background: var(--lk-glass);
+  box-shadow: inset 0 1px 0 var(--lk-glass-hi), inset 0 0 0 1px var(--lk-line), var(--lk-shadow);
+  -webkit-backdrop-filter: blur(24px) saturate(1.7);
+  backdrop-filter: blur(24px) saturate(1.7);
+  transition:
+    transform 520ms cubic-bezier(0.34, 1.2, 0.64, 1),
+    opacity 320ms ease;
+}
+
+.lock-note-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.lock-note-body {
+  margin-top: 1px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--lk-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lock-note.is-warn .lock-note-top > :first-child {
+  color: #e2b35c;
+}
+
+:root[data-theme='light'] .lock-note.is-warn .lock-note-top > :first-child {
+  color: #8a6410;
+}
+
+/* Stacked: one card, two peeking out under it, the rest put away. */
+.lock-notes:not([data-open]) .lock-notes-list {
+  padding-bottom: 16px;
+  cursor: pointer;
+}
+
+.lock-notes:not([data-open]) .lock-note:nth-child(n + 2) {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 100%;
+  max-height: 60px;
+  pointer-events: none;
+}
+
+.lock-notes:not([data-open]) .lock-note:nth-child(2) {
+  z-index: -1;
+  transform: translate3d(0, 8px, 0) scale(0.94);
+  opacity: 0.8;
+}
+
+.lock-notes:not([data-open]) .lock-note:nth-child(3) {
+  z-index: -2;
+  transform: translate3d(0, 16px, 0) scale(0.88);
+  opacity: 0.55;
+}
+
+.lock-notes:not([data-open]) .lock-note:nth-child(n + 4) {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0) scale(0.86);
+  visibility: hidden;
+}
+
+.lock-notes:not([data-open]) .lock-note:nth-child(n + 2) > * {
+  opacity: 0;
+}
+
+/* Opened, the log grows upward over the name rather than pushing it: the
+   layout under it never moves, and the name behind it goes out of focus. */
+.lock-notes[data-open] .lock-notes-inner {
+  position: absolute;
+  inset: auto 0 0;
+}
+
+.lock-canvas,
+.lock-middle {
+  transition: opacity 900ms ease, filter 420ms ease;
+}
+
+.lock[data-notes='open'] .lock-canvas,
+.lock[data-notes='open'] .lock-middle,
+.lock[data-notes='open'] .lock-top {
+  filter: blur(14px);
+  opacity: 0.55;
+}
+
+.lock-notes[data-open] .lock-notes-list {
+  max-height: min(46vh, 440px);
+  overflow-y: auto;
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lock-notes[data-open] .lock-note {
+    animation: note-drop 520ms cubic-bezier(0.34, 1.3, 0.64, 1) backwards;
+    animation-delay: calc(var(--i) * 45ms);
+  }
+}
+
+@keyframes note-drop {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -14px, 0) scale(0.96);
+  }
+}
+
+/* ---------------------------------------------------------- way in */
+.lock-bottom {
+  display: grid;
+  grid-template-columns: 50px 1fr 50px;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  opacity: calc(1 - var(--p) * 2.4);
+}
+
+.lock-round {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 999px;
+  color: var(--lk-ink);
+  background: var(--lk-glass);
+  box-shadow: inset 0 1px 0 var(--lk-glass-hi), inset 0 0 0 1px var(--lk-line), var(--lk-shadow);
+  -webkit-backdrop-filter: blur(24px) saturate(1.7);
+  backdrop-filter: blur(24px) saturate(1.7);
+  transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.lock-round:active {
+  transform: scale(0.88);
+}
+
+.lock-round[aria-pressed='true'] {
+  color: #0f1417;
+  background: rgb(255 255 255 / 0.9);
+}
+
+.lock-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  justify-self: center;
+  padding: 6px 14px;
+  border-radius: 18px;
+  color: var(--lk-ink);
+}
+
+.lock-chevron {
+  display: grid;
+  place-items: center;
+  color: var(--lk-ink-2);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lock-chevron {
+    animation: chevron-rise 1.8s cubic-bezier(0.45, 0, 0.3, 1) infinite;
+  }
+}
+
+@keyframes chevron-rise {
+  0%, 100% { transform: translateY(2px); opacity: 0.5; }
+  45% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* The old "slide to unlock" shimmer: a band of light running along the words. */
+.lock-hint-text {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: transparent;
+  background: linear-gradient(
+    100deg,
+    var(--lk-ink-3) 0%,
+    var(--lk-ink-3) 38%,
+    var(--lk-ink) 50%,
+    var(--lk-ink-3) 62%,
+    var(--lk-ink-3) 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lock-hint-text {
+    animation: shimmer 2.8s linear infinite;
+  }
+}
+
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -150% 0; }
+}
+
+.lock-hint-keys {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--lk-ink-3);
+}
+
+.lock-coarse {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .lock-coarse {
+    display: inline;
+  }
+
+  .lock-fine {
+    display: none;
+  }
+}
+
+.lock-home {
+  align-self: center;
+  width: 134px;
+  height: 5px;
+  margin-bottom: 4px;
+  border-radius: 999px;
+  background: var(--lk-ink);
+  opacity: 0.85;
+  flex: none;
+}
+
+@media (pointer: fine) {
+  .lock-home {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------- the desk, waiting
+ * While the door is shut, the desk sits a little further back, and it comes
+ * forward to full size exactly as far as the lock screen has been scrolled.
+ */
+:root[data-locked] [data-desk] {
+  transform: scale(calc(0.9 + 0.1 * var(--lock-p, 0)));
+  transform-origin: 50% 45%;
+}
+
+@media (forced-colors: active) {
+  .lock-note,
+  .lock-round,
+  .lock-notes-count {
+    border: 1px solid CanvasText;
+  }
+
+  .lock-name {
+    color: CanvasText;
+    background: none;
+  }
+}

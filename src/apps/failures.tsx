@@ -1,18 +1,12 @@
 import { failures, type Failure } from '~/data'
 import { counts, projectFor, stability } from '@/lib/derived'
-import {
-  Chip,
-  DraftNotice,
-  ExternalLink,
-  Glyph,
-  Section,
-  SeverityTag,
-  StatusTag,
-} from '@/components/ui'
+import { Chip, DraftNotice, ExternalLink, Glyph, SeverityTag, StatusTag } from '@/components/ui'
 import {
   AppHeader,
   AppPage,
   ArrowDot,
+  Badge,
+  Chapter,
   Dash,
   DotNumber,
   Filter,
@@ -36,6 +30,7 @@ export function FailuresApp() {
   return (
     <AppPage>
       <AppHeader
+        app="failures"
         path="FAILED_BUILDS/"
         title="Crash reports"
         sub="What broke, why, how it was found, and what changed after."
@@ -73,9 +68,7 @@ export function FailuresApp() {
           {failures.map((f, i) => (
             <li key={f.id} data-f={f.severity}>
               <a href={`/failures/${f.id}`} className="tile flex items-center gap-3 px-3.5 py-3">
-                <span className="hidden @xs:block text-tertiary">
-                  <DotNumber value={String(i + 1).padStart(3, '0')} size={11} />
-                </span>
+                <Badge glyph="warn" tone={f.severity === 'high' ? 'error' : f.severity === 'medium' ? 'warn' : 'neutral'} size={30} />
                 <span className="min-w-0 flex-1">
                   <span className="block text-[14px] leading-snug text-primary">{f.title}</span>
                   <span className="flex flex-wrap items-center gap-1.5 mt-1.5">
@@ -88,6 +81,9 @@ export function FailuresApp() {
                       </span>
                     )}
                   </span>
+                </span>
+                <span className="hidden @xs:block text-tertiary shrink-0">
+                  <DotNumber value={String(i + 1).padStart(3, '0')} size={10} />
                 </span>
                 <ArrowDot size={28} glyph="chevron" />
               </a>
@@ -156,15 +152,15 @@ export function CrashReport({ failure }: { failure: Failure }) {
           </div>
         )}
 
-        <Section title="What happened">
-          <p>{failure.whatHappened}</p>
-        </Section>
+        <Chapter n={1} id="happened" title="What happened" glyph="flag" tone="error">
+          <p className="lead">{failure.whatHappened}</p>
+        </Chapter>
 
-        <Section title="Cause">
-          <p>{failure.cause}</p>
-        </Section>
+        <Chapter n={2} id="cause" title="Cause" glyph="target" tone="warn">
+          <p className="prose-col">{failure.cause}</p>
+        </Chapter>
 
-        <Section title="How I found it">
+        <Chapter n={3} id="found" title="How I found it" glyph="search" tone="info" kicker={`${failure.investigation.length} steps`}>
           <ol className="timeline tone-error not-prose">
             {failure.investigation.map((step, i) => (
               <li key={i} className="text-[14px] leading-[1.6] text-secondary">
@@ -172,22 +168,24 @@ export function CrashReport({ failure }: { failure: Failure }) {
               </li>
             ))}
           </ol>
-        </Section>
+        </Chapter>
 
-        <Section title="Fix">
-          <p>{failure.fix}</p>
-        </Section>
+        <Chapter n={4} id="fix" title="Fix" glyph="wrench" tone="ok">
+          <p className="prose-col">{failure.fix}</p>
+        </Chapter>
 
-        <Section title="What I learned">
-          <div className="tile p-4 not-prose">
-            <p className="text-[15px] leading-[1.6] text-primary">{failure.lesson}</p>
-          </div>
-        </Section>
+        <Chapter n={5} id="lesson" title="What I learned" glyph="spark" tone="violet">
+          <figure className="tile p-4 flex gap-3 not-prose">
+            <Glyph name="quote" size={18} className="text-tertiary shrink-0 mt-0.5" />
+            <blockquote className="text-[15px] leading-[1.6] text-primary">{failure.lesson}</blockquote>
+          </figure>
+        </Chapter>
 
         {failure.commit && (
-          <Section title="The receipt">
+          <Chapter n={6} id="receipt" title="The receipt" glyph="commit" tone="neutral">
             <div className="tile p-4 grid gap-2 not-prose">
               <div className="flex flex-wrap items-center gap-2">
+                <Badge brand="github" tone="github" size={24} />
                 <Chip>{failure.commit.repo}</Chip>
                 <ExternalLink
                   href={`https://github.com/Mudit13-tech/${failure.commit.repo}/commit/${failure.commit.sha}`}
@@ -197,9 +195,8 @@ export function CrashReport({ failure }: { failure: Failure }) {
               </div>
               <p className="mono text-[12px] text-tertiary">“{failure.commit.message}”</p>
             </div>
-          </Section>
+          </Chapter>
         )}
-
       </article>
     </AppPage>
   )

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { meta, profile } from '~/data'
 import { SystemProvider } from '@/os/SystemProvider'
 import './globals.css'
+import './lock.css'
 
 /**
  * Two families, clearly distinct. Geist Sans carries the interface; Geist Mono
@@ -43,8 +44,8 @@ export const viewport: Viewport = {
 }
 
 /**
- * Stamped before first paint so the theme and the icon finish are settled by the time anything
- * renders. Every access is wrapped — private browsing throws on localStorage,
+ * Stamped before first paint so the theme, the icon finish and whether this session has already
+ * been past the lock screen are settled by the time anything renders. Every access is wrapped — private browsing throws on localStorage,
  * and a portfolio that white-screens in a private window fails the one test a
  * cautious visitor runs.
  */
@@ -53,7 +54,8 @@ try{var s=localStorage,t=s.getItem('mudit-os.v1.theme');
 if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'}
 d.dataset.theme=t}catch(e){d.dataset.theme='dark'}
 try{var i=localStorage.getItem('mudit-os.v1.icons');
-d.dataset.icons=i==='paper'||i==='ink'||i==='glaze'?i:'studio'}catch(e){d.dataset.icons='studio'}})()`
+d.dataset.icons=i==='paper'||i==='ink'||i==='glaze'?i:'studio'}catch(e){d.dataset.icons='studio'}
+try{if(sessionStorage.getItem('mudit-os.v1.unlocked')==='1'&&!/[?&](lock|boot)=1(&|$)/.test(location.search))d.dataset.unlocked=''}catch(e){}})()`
 
 /**
  * The other half of the progressive enhancement, and the half that cannot
@@ -61,7 +63,7 @@ d.dataset.icons=i==='paper'||i==='ink'||i==='glaze'?i:'studio'}catch(e){d.datase
  * scripting is off. The browser applies it at parse time, no script runs, and
  * nothing in the React tree can undo it.
  */
-const NO_JS = `<style>.static-doc{display:block}.os-shell{display:none}</style>`
+const NO_JS = `<style>.static-doc{display:block}.os-shell,.lock{display:none}</style>`
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const jsonLd = {

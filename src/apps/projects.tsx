@@ -1,18 +1,16 @@
 import { projects, type Project } from '~/data'
-import { counts, failuresFor } from '@/lib/derived'
-import { Chip, Empty, Glyph, Section, StatusTag } from '@/components/ui'
+import { counts } from '@/lib/derived'
+import { Chip, StatusTag } from '@/components/ui'
 import {
   AppHeader,
   AppPage,
   ArrowDot,
   Dash,
   DotNumber,
-  Figure,
   Filter,
   Inset,
   Orb,
   Pill,
-  RoundLink,
   Stat,
   Track,
 } from '@/components/ui/kit'
@@ -36,6 +34,7 @@ export function ProjectsApp() {
   return (
     <AppPage>
       <AppHeader
+        app="projects"
         path="PROJECTS/"
         title="Projects"
         sub="Real repositories, each linked to the crash reports it produced."
@@ -83,7 +82,7 @@ export function ProjectsApp() {
 
 function ProjectCard({ project: p }: { project: Project }) {
   return (
-    <Orb href={`/projects/${p.id}`} tone={toneFor(p)}className="h-full flex flex-col">
+    <Orb href={`/projects/${p.id}`} tone={toneFor(p)} className="h-full flex flex-col">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-[17px] leading-tight font-medium text-primary truncate">{p.name}</h2>
@@ -117,118 +116,5 @@ function toneFor(p: Project) {
   return p.status === 'shipped' ? 'ok' : p.status === 'wip' ? 'warn' : 'neutral'
 }
 
-export function ProjectDetail({ project }: { project: Project }) {
-  const linked = failuresFor(project)
-
-  return (
-    <AppPage>
-      <article>
-        <Orb tone={toneFor(project)} className="mb-6">
-          <p className="field-label">Project · {project.type}</p>
-          <h1 className="text-[26px] @lg:text-[30px] leading-[1.1] tracking-[-0.02em] font-medium text-primary mt-2">
-            {project.name}
-          </h1>
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            <StatusTag status={project.status} />
-            <Pill>{project.role}</Pill>
-          </div>
-
-          <Inset className="mt-5 flex items-end gap-3">
-            <Stat label="Stack">
-              <span className="text-[13px] text-primary truncate">{project.stack.slice(0, 3).join(' · ')}</span>
-            </Stat>
-            <Dash />
-            <Stat label="First commit" align="right">
-              <DotNumber value={project.year} size={19} />
-            </Stat>
-          </Inset>
-
-          <div className="flex flex-wrap gap-2 mt-4">
-            {project.links.source ? (
-              <RoundLink href={project.links.source}>Source</RoundLink>
-            ) : (
-              <Empty>No public source</Empty>
-            )}
-            {project.links.live ? (
-              <RoundLink href={project.links.live}>Live</RoundLink>
-            ) : (
-              <Empty>No live demo — it runs locally or on a device</Empty>
-            )}
-          </div>
-        </Orb>
-
-        <Section title="The problem">
-          <p>{project.problem}</p>
-        </Section>
-
-        <Section title="How it works">
-          <p>{project.architecture}</p>
-        </Section>
-
-        <Section title="What I built">
-          {project.contribution.startsWith('TODO') ? (
-            <Empty>{project.contribution.replace(/^TODO — /, '')}</Empty>
-          ) : (
-            <p>{project.contribution}</p>
-          )}
-        </Section>
-
-        {project.evidence.length > 0 && (
-          <Section title="Measured">
-            <ul className="grid gap-2.5 @lg:grid-cols-2 not-prose">
-              {project.evidence.map((e) => (
-                <li key={e.label} className="tile p-3.5">
-                  <p className="text-[12px] text-tertiary">{e.label}</p>
-                  <div className="mt-2">
-                    <Figure value={e.value} />
-                  </div>
-                  <p className="micro text-tertiary mt-2">{e.source}</p>
-                </li>
-              ))}
-            </ul>
-          </Section>
-        )}
-
-        <Section title="What broke">
-          {linked.length === 0 ? (
-            <Empty>No crash reports filed against this project yet.</Empty>
-          ) : (
-            <ul className="grid gap-2 not-prose">
-              {linked.map((f) => (
-                <li key={f.id}>
-                  <a href={`/failures/${f.id}`} className="tile flex items-center gap-3 px-3.5 py-3">
-                    <Glyph name="warn" size={14} className="text-error shrink-0" />
-                    <span className="text-[14px] text-primary">{f.title}</span>
-                    <span className="ml-auto">
-                      <ArrowDot size={26} glyph="chevron" />
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Section>
-
-        {project.retrospective && (
-          <Section title="What I'd do differently">
-            {project.retrospective.startsWith('TODO') ? (
-              <Empty>{project.retrospective.replace(/^TODO — /, '')}</Empty>
-            ) : (
-              <p>{project.retrospective}</p>
-            )}
-          </Section>
-        )}
-
-        {project.stack.length > 3 && (
-          <Section title="Full stack">
-            <div className="flex flex-wrap gap-1.5 not-prose">
-              {project.stack.map((s) => (
-                <Chip key={s}>{s}</Chip>
-              ))}
-            </div>
-          </Section>
-        )}
-      </article>
-    </AppPage>
-  )
-}
+/* The detail page lives in its own file: the case study. */
+export { ProjectDetail } from './project-detail'

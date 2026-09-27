@@ -8,6 +8,7 @@ import { useShellKind, useSystem, useSystemApi } from '@/os/SystemProvider'
 import { useShortcuts } from '@/os/useShortcuts'
 import { WindowLayer } from '@/components/window/WindowLayer'
 import { Overlays } from '@/components/system/Overlays'
+import { Interactions } from '@/components/system/Interactions'
 import { Widgets } from '@/components/desktop/Widgets'
 import { IconFramesProvider } from '@/components/ui'
 import { DesktopIcons } from './DesktopIcons'
@@ -97,6 +98,7 @@ export function Shell({
           )}
 
           <Overlays />
+          <Interactions />
         </div>
       </IconFramesProvider>
     </LinkInterceptor>

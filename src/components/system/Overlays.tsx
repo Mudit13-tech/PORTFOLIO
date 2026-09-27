@@ -35,7 +35,7 @@ const SHORTCUTS: Array<[string, string]> = [
   ['Ctrl + ↑', 'Maximize / restore'],
   ['Ctrl + ← / →', 'Snap left / right'],
   ['Ctrl + Shift + D', 'Dev mode'],
-  ['Ctrl + Shift + R', 'Reset system, replay boot'],
+  ['Ctrl + Shift + R', 'Reset system, back to the lock screen'],
 ]
 
 function ShortcutOverlay() {

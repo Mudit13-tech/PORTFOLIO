@@ -46,12 +46,12 @@ export function useShortcuts(enabled: boolean) {
           api.toggleDevMode()
           api.findEgg('dev-mode')
         }
-        // Ctrl+Shift+R replays the boot sequence — how you demo it in an
+        // Ctrl+Shift+R goes back to the lock screen — how you demo it in an
         // interview without opening a private window.
         if (e.key.toLowerCase() === 'r') {
           e.preventDefault()
           api.reset()
-          window.location.href = '/?boot=1'
+          window.location.href = '/?lock=1'
         }
         return
       }

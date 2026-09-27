@@ -443,16 +443,93 @@ export function appSfx(id: AppId, part: Part): void {
   }
 }
 
-/** The chrome's own sounds — windows, menus, the dock. Shared by every app. */
-export type Ui = 'tick' | 'minimize' | 'restore' | 'maximize' | 'menu' | 'boot'
+/**
+ * The chrome's own sounds — windows, menus, the dock — and the interior's: the
+ * tiles, tabs, dials and switches inside every application. Shared by all of
+ * them, because a tab in the skills app and a tab in the crash reports are the
+ * same control and must not sound like two.
+ *
+ * The interior set is deliberately smaller than the app voices: short, soft,
+ * low-passed blips with no noise in them, so a page full of controls reads as
+ * one quiet surface under the objects' louder voices rather than competing
+ * with them. Anything positional — a dial, a slider, a row of ticks — passes
+ * `pos` from 0 to 1 and the pitch climbs with it (0.75× to 1.5×), which is what
+ * lets you hear where a control is without looking at it.
+ */
+export type Ui =
+  | 'tick'
+  | 'minimize'
+  | 'restore'
+  | 'maximize'
+  | 'menu'
+  | 'boot'
+  /* interior */
+  | 'hover'
+  | 'press'
+  | 'tab'
+  | 'notch'
+  | 'chip'
+  | 'lock'
+  | 'static'
+  | 'copy'
+  | 'deny'
+  | 'open'
+  | 'swipe'
+  | 'ripple'
+  | 'unlock'
 
-export function sfx(kind: Ui): void {
+/** Minimum seconds between two of the same sound. Hover and detents are the chattiest. */
+const GAP: Partial<Record<Ui, number>> = { hover: 0.07, notch: 0.022, chip: 0.05, swipe: 0.05, ripple: 0.08 }
+
+export function sfx(kind: Ui, pos?: number): void {
   const a = audio()
   if (!a) return
   const now = a.ac.currentTime
-  if ((lastAt.get(kind) ?? -1) > now - 0.03) return
+  if ((lastAt.get(kind) ?? -1) > now - (GAP[kind] ?? 0.03)) return
   lastAt.set(kind, now)
+  /* The pitch multiplier for positional sounds. */
+  const k = pos === undefined ? 1 : 0.75 + Math.min(1, Math.max(0, pos)) * 0.75
   try {
+    if (kind === 'hover') tone(a, { freq: 520 * k, vol: 0.012, dur: 0.03, type: 'triangle', lp: 1500 })
+    if (kind === 'press') {
+      tone(a, { freq: 196 * k, to: 130 * k, vol: 0.05, dur: 0.13, type: 'sine', lp: 900 })
+      hiss(a, { from: 4200, to: 3000, vol: 0.012, dur: 0.012, q: 2.4, curve: 6 })
+    }
+    /* A detent: the tab dropping into its slot. */
+    if (kind === 'tab') {
+      tone(a, { freq: 333 * k, vol: 0.04, dur: 0.026, type: 'triangle', lp: 1200 })
+      tone(at(a, 0.018), { freq: 250 * k, vol: 0.025, dur: 0.05, type: 'sine', lp: 800 })
+    }
+    if (kind === 'notch') tone(a, { freq: 250 * k, vol: 0.032, dur: 0.028, type: 'triangle', lp: 1700 })
+    if (kind === 'chip') tone(a, { freq: 230 * k, vol: 0.022, dur: 0.05, type: 'triangle', lp: 1400 })
+    /* A station found: two clean partials a fifth apart, the second held. */
+    if (kind === 'lock') {
+      tone(a, { freq: 660 * k, vol: 0.03, dur: 0.09, type: 'sine', lp: 2400 })
+      tone(at(a, 0.06), { freq: 990 * k, vol: 0.028, dur: 0.26, type: 'sine', lp: 2600 })
+    }
+    /* Nothing on this frequency. */
+    if (kind === 'static') hiss(a, { from: 2400, to: 1800, vol: 0.022, dur: 0.22, q: 0.9, curve: 1.6, attack: 0.02 })
+    if (kind === 'copy') {
+      tone(a, { freq: 680, to: 930, vol: 0.04, dur: 0.04, type: 'sine', attack: 0.003 })
+      tone(at(a, 0.07), { freq: 1020, to: 1360, vol: 0.032, dur: 0.05, type: 'sine', attack: 0.003 })
+    }
+    if (kind === 'deny') tone(a, { freq: 208, to: 165, vol: 0.035, dur: 0.12, type: 'sine', lp: 520 })
+    if (kind === 'open') tone(a, { freq: 394 * k, to: 612 * k, vol: 0.04, dur: 0.24, type: 'triangle', lp: 1700, attack: 0.012 })
+    if (kind === 'swipe') hiss(a, { from: 600 * k, to: 1400 * k, vol: 0.014, dur: 0.09, q: 0.8, curve: 2.4 })
+    /* A drop on still water: a sine snapped upward, then its reflection. */
+    if (kind === 'ripple') {
+      tone(a, { freq: 420 * k, to: 1100 * k, vol: 0.03, dur: 0.06, type: 'sine', attack: 0.004 })
+      tone(at(a, 0.09), { freq: 700 * k, to: 1500 * k, vol: 0.012, dur: 0.05, type: 'sine', attack: 0.004 })
+    }
+    /* The lock opening: the shackle's click, then the system's chord rising. */
+    if (kind === 'unlock') {
+      hiss(a, { from: 6400, to: 3600, vol: 0.05, dur: 0.018, q: 2.2, curve: 6 })
+      tone(a, { freq: 220, to: 150, vol: 0.05, dur: 0.07, type: 'triangle', lp: 800 })
+      ;[1, 1.25, 1.5, 2].forEach((m, i) =>
+        fm(at(a, 0.07 + i * 0.045), { freq: 523 * m, ratio: 2.41, index: 1.8, vol: 0.03, dur: 0.9 - i * 0.1, decay: 0.16 }),
+      )
+      hiss(at(a, 0.05), { from: 500, to: 3200, vol: 0.018, dur: 0.36, q: 0.8, curve: 2 })
+    }
     if (kind === 'tick') hiss(a, { from: 5200, to: 4200, vol: 0.012, dur: 0.012, q: 3, curve: 6 })
     if (kind === 'minimize') {
       // Down and away, matching the genie curve the window takes.

@@ -16,9 +16,9 @@ import {
 /**
  * Every count, every cross-link, every metric in the system.
  *
- * No component types a number that describes the content. If the boot screen
+ * No component types a number that describes the content. If the lock screen
  * says nine crash reports, it is because `failures.length === 9`, and when a
- * tenth is added the boot screen, the desktop icon, the dock and the system
+ * tenth is added the lock screen, the desktop icon, the dock and the system
  * monitor all change together because they all read from here.
  */
 
@@ -208,12 +208,12 @@ export const system = {
   stability,
 } as const
 
-/** The boot screen's mount lines. Counts come from here, never from prose. */
+/** The boot sequence, shown as the lock screen's notifications. Counts come from here, never from prose. */
 export const bootLines = [
-  { label: 'Initializing developer', value: 'OK' },
-  { label: 'Mounting /projects', value: `${counts.projects} found` },
-  { label: 'Mounting /experiments', value: `${counts.experiments} found` },
-  { label: 'Mounting /failures', value: `${counts.failures} found` },
-  { label: 'Loading skills', value: `${counts.skills} modules` },
-  { label: 'Checking system stability', value: stability.display },
-] as const
+  { app: 'about', label: 'Initializing developer', value: 'OK' },
+  { app: 'projects', label: 'Mounting /projects', value: `${counts.projects} found` },
+  { app: 'experiments', label: 'Mounting /experiments', value: `${counts.experiments} found` },
+  { app: 'failures', label: 'Mounting /failures', value: `${counts.failures} found` },
+  { app: 'skills', label: 'Loading skills', value: `${counts.skills} modules` },
+  { app: 'monitor', label: 'Checking system stability', value: stability.display },
+] as const satisfies readonly { app: AppId; label: string; value: string }[]

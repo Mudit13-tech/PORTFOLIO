@@ -694,15 +694,6 @@ body {
  * Motion explains system behaviour. Nothing animates for atmosphere, and
  * nothing animates a property other than transform and opacity.
  */
-@keyframes boot-line {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 @keyframes shake {
   0%,
   100% {
@@ -748,11 +739,6 @@ body {
   animation: notice-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.anim-boot-line {
-  animation: boot-line 1ms linear both;
-  animation-delay: calc(var(--i) * 55ms);
-}
-
 /* The single most commonly skipped requirement in portfolios like this.
  * Every duration collapses except opacity crossfades. */
 @media (prefers-reduced-motion: reduce) {
@@ -763,10 +749,6 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 100ms !important;
     scroll-behavior: auto !important;
-  }
-
-  .anim-boot-line {
-    animation-delay: 0ms !important;
   }
 }
 
@@ -913,23 +895,6 @@ body {
   72% {
     transform: translateY(-14%);
   }
-}
-
-@keyframes boot-progress {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-/* The bar is the real wait: it runs for exactly as long as the boot screen
- * does, so it is a progress indicator rather than a decoration pretending to
- * be one. */
-.anim-progress {
-  transform-origin: left center;
-  animation: boot-progress var(--boot-ms, 2400ms) linear both;
 }
 
 @keyframes pop-in {
@@ -1614,5 +1579,912 @@ a.tile:focus-visible {
   .pill,
   .segmented {
     border: 1px solid CanvasText;
+  }
+}
+
+/* ============================================= interior kit, second pass
+ * What makes the inside of an application answer back: badges that give each
+ * row a shape and a colour, a light that follows the pointer across cards, a
+ * thumb that slides between tabs, ticks that rise under the pointer, numbered
+ * chapters, and the few blocks that are one page's alone — the contact tuner
+ * and the project chapter bar. Everything is tokens, so both themes re-value
+ * it at once, and everything that moves is collapsed by reduced motion.
+ */
+
+/* ---------------------------------------------------------------- badges */
+@layer components {
+  .badge {
+    --b1: var(--t1, #6b7478);
+    --b2: color-mix(in oklab, var(--b1) 70%, black);
+    display: grid;
+    place-items: center;
+    flex: none;
+    border-radius: calc(var(--bs, 32px) * 0.31);
+    color: #fff;
+    background:
+      radial-gradient(120% 90% at 28% 0%, rgb(255 255 255 / 0.26), transparent 56%),
+      linear-gradient(172deg, color-mix(in oklab, var(--b1) 90%, white), var(--b2));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.34),
+      inset 0 0 0 1px rgb(0 0 0 / 0.1),
+      0 1px 1.5px rgb(0 0 0 / 0.16),
+      0 calc(var(--bs, 32px) * 0.14) calc(var(--bs, 32px) * 0.34) calc(var(--bs, 32px) * -0.14)
+        color-mix(in oklab, var(--b2) 75%, transparent);
+  }
+}
+
+.badge > svg {
+  filter: drop-shadow(0 1px 0.5px rgb(0 0 0 / 0.22));
+}
+
+.badge-ok { --b1: #3f9e7c; }
+.badge-warn { --b1: #c48c2c; }
+.badge-error { --b1: #c0503c; }
+.badge-info { --b1: #3a8db0; }
+.badge-violet { --b1: #8a67c4; }
+.badge-teal { --b1: #2f93a8; }
+.badge-neutral { --b1: #6f787c; }
+.badge-mail { --b1: #4790c9; }
+.badge-github { --b1: #3d434a; --b2: #15181b; }
+.badge-leetcode { --b1: #34302b; --b2: #161412; color: #ffa116; }
+.badge-linkedin { --b1: #1a78d4; --b2: #0a55a3; }
+
+/* The badges follow the icon finish the visitor chose for the desk, so a
+   paper desk does not get glossy tiles inside its windows. */
+:root[data-icons='paper'] .badge {
+  color: color-mix(in oklab, var(--b1) 88%, black);
+  background: linear-gradient(172deg, #fdfcf9, #efece4);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 0 0 1px rgb(50 45 30 / 0.12),
+    0 1px 2px rgb(70 60 35 / 0.14);
+}
+
+:root[data-icons='ink'] .badge {
+  color: color-mix(in oklab, var(--b1) 70%, white);
+  background: linear-gradient(172deg, #373b35, #1d201d);
+}
+
+:root[data-icons='paper'] .badge > svg,
+:root[data-icons='ink'] .badge > svg {
+  filter: none;
+}
+
+/* The object that opened the window, at the top of it. */
+.app-header-icon {
+  display: block;
+  margin-top: 2px;
+}
+
+/* ------------------------------------------------------------- spotlight
+ * The card under the pointer is lit from where the pointer is. The position
+ * comes from the delegated listener in Interactions.tsx; without it, nothing
+ * is drawn. The light sits between the card's own surface and its content, so
+ * it brightens the material and never the words on it.
+ */
+@layer components {
+  .tile {
+    position: relative;
+    isolation: isolate;
+  }
+}
+
+.tile::after,
+.orb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+
+.tile::after {
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), var(--spot), transparent 66%);
+}
+
+.orb::after {
+  background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklab, var(--t1) 24%, transparent), transparent 64%);
+}
+
+.tile[data-lit]::after,
+.orb[data-lit]::after {
+  opacity: 1;
+}
+
+:root {
+  --spot: rgb(255 255 255 / 0.075);
+}
+
+:root[data-theme='light'] {
+  --spot: rgb(255 255 255 / 0.95);
+}
+
+a.tile:active,
+button.tile:active {
+  transform: scale(0.985);
+}
+
+/* ------------------------------------------------------------- seg glide */
+.segmented {
+  position: relative;
+}
+
+.seg > span {
+  position: relative;
+  z-index: 1;
+}
+
+.seg-glide {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  z-index: 0;
+  width: 0;
+  height: 30px;
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+  background: var(--seg-on-bg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2), 0 6px 14px -8px rgb(0 0 0 / 0.5);
+  transition:
+    transform 480ms cubic-bezier(0.34, 1.32, 0.64, 1),
+    width 480ms cubic-bezier(0.34, 1.32, 0.64, 1);
+}
+
+.segmented[data-glide] .seg-glide {
+  opacity: 1;
+}
+
+.segmented[data-glide] .seg:has(input:checked) > span {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------------ ticks */
+.ticks {
+  display: flex;
+  align-items: flex-end;
+  height: 16px;
+  color: var(--text-tertiary);
+}
+
+.tk {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.tk::before {
+  content: '';
+  width: 1.5px;
+  height: 5px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.42;
+  transform-origin: 50% 100%;
+  transition:
+    transform 340ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 200ms ease;
+}
+
+.tk.on {
+  color: var(--tc, var(--signal-ok));
+}
+
+.tk.on::before {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .tk:hover::before {
+    transform: scaleY(2.7);
+    opacity: 1;
+  }
+
+  .tk:hover + .tk::before,
+  .tk:has(+ .tk:hover)::before {
+    transform: scaleY(1.95);
+  }
+
+  .tk:hover + .tk + .tk::before,
+  .tk:has(+ .tk + .tk:hover)::before {
+    transform: scaleY(1.4);
+  }
+}
+
+/* --------------------------------------------------------------- chapters */
+.chapter {
+  margin-top: 30px;
+  scroll-margin-top: 58px;
+}
+
+.chapter-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.chapter-num {
+  color: var(--text-tertiary);
+}
+
+.chapter-title {
+  font-size: 15px;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.chapter-rule {
+  flex: 1;
+  min-width: 12px;
+  height: 2px;
+  background-image: radial-gradient(circle, var(--orb-line-strong) 0.9px, transparent 1.3px);
+  background-size: 6px 2px;
+  background-repeat: repeat-x;
+}
+
+.chapter-kicker {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.chapter-body {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+/* The one sentence a chapter is about, set to be read first. */
+.lead {
+  max-width: 62ch;
+  font-size: 17.5px;
+  line-height: 1.5;
+  letter-spacing: -0.012em;
+  color: var(--text-primary);
+}
+
+@container (min-width: 36rem) {
+  .lead {
+    font-size: 19px;
+  }
+}
+
+.chapter-body code,
+.lead code {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.84em;
+  padding: 0.05em 0.38em;
+  border-radius: 6px;
+  color: var(--text-primary);
+  background: var(--pill-bg);
+  box-shadow: inset 0 0 0 1px var(--orb-line);
+}
+
+/* ---------------------------------------------------------------- buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.btn:active {
+  transform: scale(0.955);
+}
+
+.btn-solid {
+  color: var(--surface-window);
+  background: var(--text-primary);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    0 1px 2px rgb(0 0 0 / 0.22),
+    0 8px 18px -10px rgb(0 0 0 / 0.55);
+}
+
+.btn-solid:hover {
+  background: color-mix(in oklab, var(--text-primary) 88%, var(--surface-window));
+}
+
+.btn-quiet {
+  color: var(--text-primary);
+  background: var(--pill-bg);
+  box-shadow:
+    inset 0 1px 0 var(--orb-hi),
+    inset 0 0 0 1px var(--orb-line);
+}
+
+.btn-quiet:hover {
+  background: var(--tile-bg-hover);
+}
+
+.btn.is-off {
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+  box-shadow: inset 0 0 0 1px var(--orb-line-strong);
+  background: transparent;
+  border: 1px dashed transparent;
+}
+
+.btn-icon {
+  transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn:hover .btn-icon {
+  transform: translate(1.5px, -1.5px);
+}
+
+.copy-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  box-shadow: inset 0 0 0 1px var(--orb-line-strong);
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.copy-chip:hover {
+  color: var(--text-primary);
+  background: var(--pill-bg);
+}
+
+.copy-chip.is-done {
+  color: var(--signal-ok);
+}
+
+.live-dot {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  animation: live-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes live-ping {
+  0% { transform: scale(1); opacity: 0.6; }
+  80%, 100% { transform: scale(2.8); opacity: 0; }
+}
+
+/* ------------------------------------------------------------------ chips */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-size: 12px;
+  transition:
+    transform 520ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 180ms ease,
+    color 180ms ease;
+  will-change: transform;
+}
+
+.chips:hover .chip {
+  transition-duration: 160ms, 180ms, 180ms;
+}
+
+.chip:hover {
+  color: var(--text-primary);
+  background: var(--tile-bg-hover);
+}
+
+/* ------------------------------------------------------------ entrances
+ * Each block of a page comes up out of a soft blur, one after another, the
+ * moment the window opens. `backwards` rather than `both`, so once it has
+ * played the animation lets go and a card's own hover transform is its own
+ * again.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .app-page > *,
+  .app-page > article > * {
+    animation: rise-in 620ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  .app-page > :nth-child(2), .app-page > article > :nth-child(2) { animation-delay: 50ms; }
+  .app-page > :nth-child(3), .app-page > article > :nth-child(3) { animation-delay: 100ms; }
+  .app-page > :nth-child(4), .app-page > article > :nth-child(4) { animation-delay: 150ms; }
+  .app-page > :nth-child(5), .app-page > article > :nth-child(5) { animation-delay: 200ms; }
+  .app-page > :nth-child(6), .app-page > article > :nth-child(6) { animation-delay: 240ms; }
+  .app-page > :nth-child(n + 7), .app-page > article > :nth-child(n + 7) { animation-delay: 280ms; }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.985);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* ------------------------------------------------------ project: the card */
+.project-hero {
+  padding: 18px;
+}
+
+.project-title {
+  position: relative;
+  margin-top: 10px;
+  font-size: 30px;
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  color: var(--text-primary);
+}
+
+@container (min-width: 36rem) {
+  .project-hero {
+    padding: 22px;
+  }
+
+  .project-title {
+    font-size: 40px;
+  }
+}
+
+/* The project's number on the shelf, in the panel's own dot face — large,
+   faint and cut off by the card's edge, like a number stencilled on a crate. */
+.project-index {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  color: var(--tc);
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.facts > * + * {
+  padding-left: 12px;
+  box-shadow: inset 1px 0 0 var(--orb-line);
+}
+
+.facts-rule {
+  height: 1px;
+  margin: 12px -14px;
+  background: var(--orb-line);
+}
+
+/* ------------------------------------------------- project: chapter bar */
+.section-nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 14px -16px 0;
+  padding: 8px 16px 9px;
+  background: color-mix(in srgb, var(--surface-window) 82%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+}
+
+@container (min-width: 32rem) {
+  .section-nav {
+    margin-inline: -24px;
+    padding-inline: 24px;
+  }
+}
+
+.section-nav-track {
+  position: relative;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  box-shadow: inset 0 0 0 1px var(--orb-line);
+}
+
+.section-nav-track::-webkit-scrollbar {
+  display: none;
+}
+
+.section-nav-thumb {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--seg-on-bg);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2), 0 6px 14px -8px rgb(0 0 0 / 0.5);
+  transition:
+    transform 520ms cubic-bezier(0.34, 1.3, 0.64, 1),
+    width 520ms cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+
+.section-nav-item {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  transition: color 220ms ease;
+}
+
+.section-nav-item:hover {
+  color: var(--text-primary);
+}
+
+.section-nav-item[aria-current] {
+  color: var(--seg-on-fg);
+}
+
+.section-nav-n {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  opacity: 0.55;
+}
+
+/* How far through the record you are, along the bar's bottom edge. */
+.section-nav-read {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1.5px;
+  background: var(--tc);
+  transform-origin: left center;
+  transform: scaleX(var(--read, 0));
+  opacity: 0.75;
+}
+
+/* ------------------------------------------------------ project: pieces */
+.steps {
+  display: grid;
+  gap: 8px;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 14px;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.step-num {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  color: var(--tc, var(--text-secondary));
+  background: var(--inset-bg);
+  box-shadow: inset 0 0 0 1px var(--orb-line);
+}
+
+.chapter .steps {
+  --tc: #4fb3a2;
+}
+
+.spec {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@container (min-width: 44rem) {
+  .spec {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.spec-cell {
+  padding: 13px 14px;
+  color: var(--text-primary);
+}
+
+.incident {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.sev {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--text-tertiary);
+}
+
+.sev-high { background: var(--signal-error); box-shadow: 0 0 0 3px color-mix(in oklab, var(--signal-error) 22%, transparent); }
+.sev-medium { background: var(--signal-warn); }
+
+.pager {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 34px;
+}
+
+.pager-card {
+  padding: 14px;
+  border-radius: 20px;
+}
+
+.draft {
+  padding: 12px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  background: color-mix(in oklab, var(--signal-warn) 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--signal-warn) 28%, transparent);
+  border: 1px dashed transparent;
+}
+
+.draft-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--signal-warn);
+}
+
+/* ---------------------------------------------------------- contact */
+.channel-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px 11px 11px;
+}
+
+.channel-row.is-pending .badge {
+  filter: saturate(0.35);
+  opacity: 0.75;
+}
+
+.offline-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 14px 13px 11px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--orb-line-strong);
+  border: 1px dashed transparent;
+}
+
+/* The receiver. */
+.tuner-display {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px 12px 12px;
+  border-radius: 18px;
+  background: var(--inset-bg);
+  box-shadow:
+    inset 0 0 0 1px var(--orb-line),
+    inset 0 1px 2px rgb(0 0 0 / 0.12);
+}
+
+/* Static: a fine grain that crawls over the display while no station is
+   locked, and is gone the moment one is. */
+.tuner-noise {
+  position: absolute;
+  inset: -40px;
+  pointer-events: none;
+  opacity: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  mix-blend-mode: overlay;
+  transition: opacity 260ms ease;
+}
+
+.tuner-display.is-static .tuner-noise {
+  opacity: 0.35;
+  animation: static-crawl 380ms steps(4) infinite;
+}
+
+@keyframes static-crawl {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-18px, 9px); }
+  50% { transform: translate(11px, -14px); }
+  75% { transform: translate(-7px, 16px); }
+  100% { transform: translate(0, 0); }
+}
+
+.tuner-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 20px;
+  flex: none;
+}
+
+.tuner-bars > span {
+  width: 4px;
+  height: calc(6px + var(--b) * 4.5px);
+  border-radius: 2px;
+  background: var(--orb-line-strong);
+  transition: background-color 200ms ease calc(var(--b) * 70ms), transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--b) * 70ms);
+  transform-origin: bottom;
+  transform: scaleY(0.55);
+}
+
+.tuner-bars > span.on {
+  background: var(--signal-ok);
+  transform: none;
+}
+
+.tuner-band {
+  position: relative;
+  margin-top: 14px;
+  padding: 18px 0 30px;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  border-radius: 14px;
+}
+
+.tuner-band:active {
+  cursor: grabbing;
+}
+
+.tuner-band:focus-visible {
+  outline-offset: 4px;
+  border-radius: 14px;
+}
+
+.tuner-scale {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 18px;
+}
+
+.tuner-scale > span {
+  width: 1.5px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--text-tertiary);
+  opacity: 0.45;
+}
+
+.tuner-scale > span.md {
+  height: 10px;
+  opacity: 0.6;
+}
+
+.tuner-scale > span.st {
+  height: 15px;
+  opacity: 0.9;
+  background: var(--text-secondary);
+}
+
+.tuner-needle {
+  position: absolute;
+  top: 6px;
+  bottom: 26px;
+  width: 0;
+  pointer-events: none;
+}
+
+.tuner-needle-line {
+  position: absolute;
+  top: 8px;
+  bottom: 0;
+  left: -1px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--signal-error);
+  box-shadow: 0 0 10px color-mix(in oklab, var(--signal-error) 60%, transparent);
+}
+
+.tuner-needle-head {
+  position: absolute;
+  top: 0;
+  left: -6px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 9px solid var(--text-primary);
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.35));
+}
+
+.tuner-stations {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4px;
+  height: 18px;
+}
+
+.tuner-station {
+  position: absolute;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transform: translateX(-50%);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: var(--text-tertiary);
+  transition: color 200ms ease;
+}
+
+.tuner-station-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+.tuner-station.is-open .tuner-station-dot {
+  background: var(--signal-ok);
+  box-shadow: none;
+}
+
+.tuner-station.is-sel {
+  color: var(--text-primary);
+}
+
+@container (max-width: 22rem) {
+  .tuner-station {
+    font-size: 9.5px;
+    letter-spacing: 0;
   }
 }

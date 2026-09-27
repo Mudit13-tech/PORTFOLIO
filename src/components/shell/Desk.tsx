@@ -1,6 +1,6 @@
 'use client'
 
-import { Boot } from './Boot'
+import { LockScreen } from './LockScreen'
 import { Shell } from './Shell'
 
 /**
@@ -14,7 +14,7 @@ import { Shell } from './Shell'
 export function Desk({ entry, children }: { entry: string; children: React.ReactNode }) {
   return (
     <>
-      <Boot />
+      <LockScreen entry={entry} />
       <Shell entry={entry} serverContent={children} />
     </>
   )

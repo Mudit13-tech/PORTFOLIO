@@ -34,7 +34,8 @@ const DEFAULT_SIZE: Record<AppId, { w: number; h: number }> = {
   // tall enough that both of them are on the first screen.
   monitor: { w: 880, h: 720 },
   about: { w: 560, h: 520 },
-  contact: { w: 520, h: 460 },
+  // Tall enough for the tuner and the first of the channels under it.
+  contact: { w: 560, h: 640 },
   terminal: { w: 680, h: 420 },
   bin: { w: 560, h: 440 },
 }

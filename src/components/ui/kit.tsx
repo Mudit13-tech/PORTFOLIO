@@ -1,5 +1,8 @@
 import { useId } from 'react'
-import { Glyph } from './index'
+import type { AppId } from '~/data'
+import { SegGlide } from '@/components/system/SegGlide'
+import { AppIcon3D } from './AppIcon3D'
+import { Brand, Glyph, type BrandName, type GlyphName } from './index'
 
 /**
  * The interior kit: the material every application's content is built from.
@@ -24,27 +27,39 @@ export function AppPage({ children, className = '' }: { children: React.ReactNod
 
 /**
  * The top of every application. The path stays in mono because it is the
- * system talking; the title is for people.
+ * system talking; the title is for people. Given its `app`, the page wears the
+ * same object that opened it — the folder on the desk is the folder at the top
+ * of the window — so a tab is recognisably that application before a word of
+ * it is read.
  */
 export function AppHeader({
   path,
   title,
   sub,
   aside,
+  app,
 }: {
   path: string
   title: string
   sub?: React.ReactNode
   aside?: React.ReactNode
+  app?: AppId
 }) {
   return (
-    <header className="flex items-start justify-between gap-3 mb-4">
-      <div className="min-w-0">
-        <p className="field-label">{path}</p>
-        <h1 className="text-[22px] @lg:text-[26px] leading-[1.15] tracking-[-0.02em] font-medium text-primary mt-1">
-          {title}
-        </h1>
-        {sub ? <p className="text-[13px] text-tertiary mt-1">{sub}</p> : null}
+    <header className="app-header flex items-start justify-between gap-3 mb-4">
+      <div className="min-w-0 flex items-start gap-3">
+        {app ? (
+          <span className="app-header-icon shrink-0">
+            <AppIcon3D id={app} size={46} />
+          </span>
+        ) : null}
+        <div className="min-w-0">
+          <p className="field-label">{path}</p>
+          <h1 className="text-[22px] @lg:text-[26px] leading-[1.15] tracking-[-0.02em] font-medium text-primary mt-1">
+            {title}
+          </h1>
+          {sub ? <p className="text-[13px] text-tertiary mt-1">{sub}</p> : null}
+        </div>
       </div>
       {aside ? <div className="shrink-0 flex items-center gap-2 pt-0.5">{aside}</div> : null}
     </header>
@@ -148,6 +163,67 @@ export function RoundLink({ href, children }: { href: string; children: React.Re
     <a href={href} target="_blank" rel="noreferrer noopener" data-native="true" className="round-link">
       {children}
       <Glyph name="external" size={12} />
+    </a>
+  )
+}
+
+/**
+ * A glyph on a tile of its own colour — the interior's version of an
+ * application icon. Rows used to open on a bare 14px stroke that was the same
+ * envelope for four different services; a badge gives each thing a shape and a
+ * colour you can find again without reading. Tones are the kit's tones; the
+ * three brands wear their own.
+ */
+export type BadgeTone = Tone | BrandName | 'mail'
+
+export function Badge({
+  glyph,
+  brand,
+  tone = 'neutral',
+  size = 32,
+  className = '',
+}: {
+  glyph?: GlyphName
+  brand?: BrandName
+  tone?: BadgeTone
+  size?: number
+  className?: string
+}) {
+  const inner = Math.round(size * (brand ? 0.5 : 0.52))
+  return (
+    <span
+      aria-hidden="true"
+      className={`badge badge-${tone} ${className}`}
+      style={{ width: size, height: size, ['--bs' as string]: `${size}px` }}
+    >
+      {brand ? <Brand name={brand} size={inner} /> : glyph ? <Glyph name={glyph} size={inner} strokeWidth={1.7} /> : null}
+    </span>
+  )
+}
+
+/** A solid or quiet button-shaped link — the one primary action on a card. */
+export function ActionLink({
+  href,
+  children,
+  glyph = 'external',
+  quiet = false,
+  external = true,
+}: {
+  href: string
+  children: React.ReactNode
+  glyph?: GlyphName
+  quiet?: boolean
+  external?: boolean
+}) {
+  return (
+    <a
+      href={href}
+      className={`btn ${quiet ? 'btn-quiet' : 'btn-solid'}`}
+      data-sfx="open"
+      {...(external ? { target: '_blank', rel: 'noreferrer noopener', 'data-native': 'true' } : {})}
+    >
+      {children}
+      <Glyph name={glyph} size={13} className="btn-icon" />
     </a>
   )
 }
@@ -279,9 +355,9 @@ export function Track({
         <span className="track-fill" style={{ width: `${pct}%` }} />
         <span className="track-marker" style={{ left: `${pct}%` }} />
       </div>
-      <div className="track-ticks" />
+      <Ticks value={value} className="mt-1.5" />
       {labels && labels.length > 0 && (
-        <div className="flex justify-between mt-1.5">
+        <div className="flex justify-between mt-1">
           {labels.map((l) => (
             <span key={l} className="text-[11.5px] text-tertiary tabular-nums">
               {l}
@@ -289,6 +365,24 @@ export function Track({
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+/**
+ * A row of ticks, lit up to a fraction. Under the pointer they rise in a wave —
+ * the tick you are over most, its neighbours less — and each one sounds its
+ * own place in the row, so running along it plays a scale up to where the
+ * value stops. All of that is CSS and one delegated listener; the markup is
+ * plain spans and renders the same with scripting off.
+ */
+export function Ticks({ value, count = 36, className = '' }: { value: number; count?: number; className?: string }) {
+  const lit = Math.round(Math.min(1, Math.max(0, value)) * count)
+  return (
+    <div className={`ticks ${className}`} aria-hidden="true">
+      {Array.from({ length: count }, (_, i) => (
+        <span key={i} className={i < lit ? 'tk on' : 'tk'} />
+      ))}
     </div>
   )
 }
@@ -338,6 +432,7 @@ export function Filter({
     <div data-filter={id}>
       <style>{css}</style>
       <div role="radiogroup" aria-label={label} className="segmented mb-3">
+        <SegGlide />
         <label className="seg">
           <input type="radio" name={id} value="*" defaultChecked className="sr-only" />
           <span>All</span>
@@ -354,5 +449,44 @@ export function Filter({
       </div>
       {children}
     </div>
+  )
+}
+
+/* ---------------------------------------------------------------- chapter
+ * A numbered section of a record: its number in dots, a badge for what kind of
+ * section it is, the title, and a dotted leader out to an optional note. The
+ * detail pages are read top to bottom as a sequence, and a sequence should
+ * say where in it you are.
+ */
+export function Chapter({
+  n,
+  id,
+  title,
+  glyph,
+  tone = 'neutral',
+  kicker,
+  children,
+}: {
+  n: number
+  id: string
+  title: string
+  glyph: GlyphName
+  tone?: Tone
+  kicker?: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <section id={id} data-chapter={id} className="chapter">
+      <header className="chapter-head">
+        <span className="chapter-num">
+          <DotNumber value={String(n).padStart(2, '0')} size={10} />
+        </span>
+        <Badge glyph={glyph} tone={tone} size={26} />
+        <h2 className="chapter-title">{title}</h2>
+        <span className="chapter-rule" aria-hidden="true" />
+        {kicker ? <span className="chapter-kicker">{kicker}</span> : null}
+      </header>
+      <div className="chapter-body">{children}</div>
+    </section>
   )
 }

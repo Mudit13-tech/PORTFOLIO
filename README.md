@@ -16,8 +16,8 @@ npm run typecheck  # next typegen && tsc --noEmit
 ## What holds it together
 
 **Every count is derived.** No component contains a number that describes the
-content. The boot screen says nine crash reports because `failures.length === 9`;
-add a tenth and the boot screen, the desktop icon, the dock and the system
+content. The lock screen says nine crash reports because `failures.length === 9`;
+add a tenth and the lock screen, the desktop icon, the dock and the system
 monitor all change together. `src/lib/derived.ts` is the only place that counts.
 
 **Every number carries its source.** The system monitor renders the method
@@ -70,12 +70,41 @@ runs once, on an idle callback, behind the flat SVG set — which stays as the
 `Glaze`, `Paper` and `Ink` finishes under System ▸ Icon style, and as the icons a
 machine with no WebGL keeps. Nothing on the desk ever waits on a GPU.
 
+**The front door is a lock screen, and scrolling opens it.** The wallpaper is a
+second shader (`src/lib/lockscreen.ts`): the desk's silk field run as a pond, with
+the name in it as glass — rendered once into a mask from the real heading's own
+layout, differentiated into a bevel, and used to refract and light the water
+behind it, with a little dispersion at the edges. Touching it drops a ring; a few
+fall on their own. The boot sequence is its notification stack, with the same
+derived counts, and the status bar is honest too: the signal bars are the open
+contact channels, the battery is stability. It is a real scroll container with
+one snap point past the lock, so a wheel notch, a trackpad flick, a swipe, Space
+or Enter all open it, and the desk comes forward underneath exactly as far as it
+has been scrolled; Esc opens straight into the projects. Once per browser
+session, never on a deep link, always with `?lock=1` — and hidden by the pre-paint
+script for anyone who has already been in, so a reload never flashes it.
+
+**The inside of every application answers back.** Each row carries a badge — a
+glyph on a tile of its own colour, or the service's own mark on the contact
+channels — and every tab wears the object that opened it. The card under the
+pointer is lit from where the pointer is, filter tabs slide one thumb between
+them, tracks are ticks that rise in a wave under the pointer, and detail pages
+are numbered chapters. All of it is delegated from one listener in the shell
+(`Interactions.tsx`), so application content stays hook-free and renders the same
+in the plain document. The few blocks that are one page's alone are islands: the
+contact page is a receiver you tune across the channels, and a project's case
+study has a chapter bar that follows you through it.
+
 **Every application has its own voice.** Sound is off until you ask for it
 (System ▸ Sound), synthesised rather than downloaded — not one audio file ships —
 and each application's hover, press and launch are three sizes of one idea, the
 material the icon is made of. The terminal thocks like a keyswitch, the crystal
 rings inharmonically like struck glass, the bin is thin metal with paper in it.
-Opening an application from the dock tells you which one without looking.
+Opening an application from the dock tells you which one without looking. The
+interior has a quieter set shared by every app — soft, low-passed blips for hover,
+press, a tab dropping into its detent, a copy confirmed — and anything positional
+passes its position, so a dial, a slider or a row of ticks climbs in pitch as you
+move along it.
 
 **One calendar per source, never one grid for both.** GitHub contributions and
 LeetCode submissions get a heatmap each, because they are measured in different
@@ -103,13 +132,15 @@ data/                      content, typed. The only source of counts.
   activity.json            the sampled year behind the heatmap
 src/os/                    the system: store, geometry, drag, shortcuts, routing, theme
 src/apps/                  app content. No hooks — renders server-side and in a window
-src/components/shell/      menu bar, desk icons, dock, phone home screen, boot
+src/components/shell/      menu bar, desk icons, dock, phone home screen, lock screen
 src/components/desktop/    desk widgets
 src/components/window/     the window manager
-src/components/system/     heatmap, launcher, desk menu, overlays
+src/components/system/     heatmap, launcher, desk menu, overlays, the delegated
+                           interactions, and the islands: tuner, chapter bar, chips
 src/lib/                   derived.ts — counts and metrics; activity.ts — the heatmap model
                            icons3d.ts — the nine icon objects; wallpaper.ts — the desk shader
-                           sfx.ts — one synthesised voice per application
+                           lockscreen.ts — the pond and the glass name
+                           sfx.ts — one synthesised voice per application, and the interior's
 src/app/                   routes. One per app, one per record
 ```
 
@@ -140,7 +171,7 @@ The system is complete; some of the content is still yours to write.
 `?` shortcuts · `Ctrl` `K` search everything · `Esc` close · `Ctrl` `` ` ``
 cycle · `Ctrl` `1`–`8` open by index · `Ctrl` `T` terminal · `Ctrl` `W` close ·
 `Ctrl` `M` minimize · `Ctrl` `↑` maximize · `Ctrl` `←`/`→` snap ·
-`Ctrl` `Shift` `D` dev mode · `Ctrl` `Shift` `R` reset and replay boot.
+`Ctrl` `Shift` `D` dev mode · `Ctrl` `Shift` `R` reset, back to the lock screen.
 
 Right-click the desk for the same actions with a pointer. Arrow keys move
 between desktop icons, and through the heatmap once it has focus.

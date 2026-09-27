@@ -171,7 +171,13 @@ export function MobileShell() {
               </span>
               Back
             </button>
-            <span className="mono text-[12px] text-primary truncate">{APP_TITLE[top.id]}</span>
+            <span className="flex items-center gap-2 min-w-0">
+              <AppIcon3D id={top.id} size={22} />
+              <span className="mono text-[12px] text-primary truncate">
+                {APP_TITLE[top.id]}
+                {top.payload ? <span className="text-tertiary">/{top.payload}</span> : null}
+              </span>
+            </span>
             <span className="justify-self-end">
               {countFor(top.id) !== null && <span className="pill">{countFor(top.id)}</span>}
             </span>

@@ -274,12 +274,12 @@ function SystemItems() {
       <Item
         onSelect={() => {
           api.reset()
-          window.location.href = '/?boot=1'
+          window.location.href = '/?lock=1'
         }}
         hint="⌃⇧R"
       >
         <Glyph name="power" size={13} className="text-tertiary" />
-        Restart — replay boot
+        Restart — back to the lock screen
       </Item>
       <p className="micro text-tertiary px-2 py-1">build {buildVersion}</p>
     </>

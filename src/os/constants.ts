@@ -41,9 +41,6 @@ export const ICON_GUTTER_SHORT = 332
 /** Drag within this distance of an edge arms the snap preview. */
 export const SNAP_EDGE = 24
 
-export const BOOT_STAGGER = 55
-export const BOOT_MAX = 2400
-
 /** The ending fires only for visitors who actually explored. */
 export const REVEAL_APPS = 5
 export const REVEAL_MS = 3 * 60 * 1000

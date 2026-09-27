@@ -8,11 +8,13 @@ import {
 } from '~/data'
 import { counts, readingCeiling, readings, stability, system } from '@/lib/derived'
 import { activityStats, channelList } from '@/lib/activity'
-import { Chip, Empty, ExternalLink, Field, Glyph, Meter, Section } from '@/components/ui'
+import { AppIcon3D, Chip, Empty, ExternalLink, Field, Glyph, Meter, type BrandName } from '@/components/ui'
 import {
   AppHeader,
   AppPage,
   ArrowDot,
+  Badge,
+  Chapter,
   Dash,
   DotNumber,
   Inset,
@@ -20,11 +22,11 @@ import {
   Pill,
   RoundLink,
   Stat,
-  Track,
 } from '@/components/ui/kit'
 import { ActivityTable, Heatmap } from '@/components/system/Heatmap'
 import { RestoreAll } from '@/components/system/RestoreAll'
 import { CopyButton } from '@/components/system/CopyButton'
+import { ChannelTuner } from '@/components/system/ChannelTuner'
 
 /* ------------------------------------------------------------ experiments */
 
@@ -37,6 +39,7 @@ export function ExperimentsApp() {
   return (
     <AppPage>
       <AppHeader
+        app="experiments"
         path="EXPERIMENTS/"
         title="Experiments"
         sub="Small builds made to answer one question each."
@@ -53,7 +56,7 @@ export function ExperimentsApp() {
               {items.map((e) => (
                 <li key={e.id}>
                   <a href={`/experiments/${e.id}`} className="tile flex items-center gap-3 px-3.5 py-3 h-full">
-                    <Glyph name="experiments" size={14} className="text-warn shrink-0" />
+                    <Badge glyph="experiments" tone="warn" size={30} />
                     <span className="min-w-0 flex-1">
                       <span className="block text-[14px] text-primary truncate">{e.name}</span>
                       <span className="block text-[12px] text-tertiary mt-0.5 truncate">{e.tested}</span>
@@ -99,19 +102,19 @@ export function ExperimentDetail({ experiment }: { experiment: Experiment }) {
           )}
         </Orb>
 
-        <Section title="Why">
-          <p>{experiment.why}</p>
-        </Section>
-        <Section title="Result">
+        <Chapter n={1} id="why" title="Why" glyph="target" tone="info">
+          <p className="lead">{experiment.why}</p>
+        </Chapter>
+        <Chapter n={2} id="result" title="Result" glyph="flag" tone="warn">
           {todo(experiment.result) ? (
             <Empty>{experiment.result.replace(/^TODO — /, '')}</Empty>
           ) : (
-            <p>{experiment.result}</p>
+            <p className="prose-col">{experiment.result}</p>
           )}
-        </Section>
-        <Section title="Learned">
-          {todo(experiment.learned) ? <Empty>not written up yet</Empty> : <p>{experiment.learned}</p>}
-        </Section>
+        </Chapter>
+        <Chapter n={3} id="learned" title="Learned" glyph="spark" tone="violet">
+          {todo(experiment.learned) ? <Empty>not written up yet</Empty> : <p className="prose-col">{experiment.learned}</p>}
+        </Chapter>
       </article>
     </AppPage>
   )
@@ -123,6 +126,7 @@ export function BinApp() {
   return (
     <AppPage>
       <AppHeader
+        app="bin"
         path="RECYCLE_BIN/"
         title="Recycle bin"
         sub="Emptying is disabled. Nothing here is really gone."
@@ -133,11 +137,7 @@ export function BinApp() {
         {bin.map((item) => (
           <li key={item.id} className="tile px-3.5 py-3">
             <div className="flex items-center gap-2.5">
-              <Glyph
-                name={item.kind === 'folder' ? 'folder' : 'bin'}
-                size={14}
-                className="text-tertiary shrink-0"
-              />
+              <Badge glyph={item.kind === 'folder' ? 'folder' : 'file'} tone="neutral" size={28} />
               <span className="mono text-[13px] text-primary truncate">{item.name}</span>
               <Pill className="ml-auto shrink-0">{item.meta}</Pill>
             </div>
@@ -155,6 +155,7 @@ export function MonitorApp() {
   return (
     <AppPage>
       <AppHeader
+        app="monitor"
         path="SYSTEM/MONITOR"
         title="System monitor"
         sub={`Activity ${activityStats.from} → ${activityStats.to}`}
@@ -217,7 +218,7 @@ export function MonitorApp() {
         which is why the steps are printed beside it.
       </p>
 
-      <Section title="Readings">
+      <Chapter n={1} id="readings" title="Readings" glyph="pulse" tone="teal" kicker={`${readings.length} sources`}>
         <ul className="grid gap-2 not-prose">
           {readings.map((r) => {
             const row = (
@@ -249,9 +250,9 @@ export function MonitorApp() {
             )
           })}
         </ul>
-      </Section>
+      </Chapter>
 
-      <Section title="System">
+      <Chapter n={2} id="system" title="System" glyph="monitor" tone="info">
         <dl className="tile p-4 grid gap-2.5 not-prose">
           <Field label="uptime" hint={`since the first commit, ${meta.since}`}>
             <span className="mono">{system.uptime}</span>
@@ -270,7 +271,7 @@ export function MonitorApp() {
             <span className="mono">{system.build}</span>
           </Field>
         </dl>
-      </Section>
+      </Chapter>
 
       <p className="mono text-[12px] text-tertiary mt-4">
         Every number links to its source. Nothing here is typed into a component —
@@ -323,11 +324,18 @@ export function AboutApp() {
   return (
     <AppPage>
       <Orb tone="violet" className="mb-6">
-        <p className="field-label">USER PROFILE</p>
-        <h1 className="text-[28px] @lg:text-[32px] leading-[1.1] tracking-[-0.02em] font-medium text-primary mt-2">
-          {profile.name}
-        </h1>
-        <p className="text-[14px] text-secondary mt-1">{profile.role}</p>
+        <div className="flex items-start gap-3.5">
+          <span className="shrink-0 mt-0.5">
+            <AppIcon3D id="about" size={52} />
+          </span>
+          <div className="min-w-0">
+            <p className="field-label">USER PROFILE</p>
+            <h1 className="text-[28px] @lg:text-[32px] leading-[1.1] tracking-[-0.02em] font-medium text-primary mt-1.5">
+              {profile.name}
+            </h1>
+            <p className="text-[14px] text-secondary mt-1">{profile.role}</p>
+          </div>
+        </div>
         <div className="flex flex-wrap gap-1.5 mt-3">
           {profile.status ? (
             <Pill>{profile.status}</Pill>
@@ -361,7 +369,7 @@ export function AboutApp() {
         </div>
       </Orb>
 
-      <Section title={`Currently · as of ${profile.currently.asOf}`}>
+      <Chapter n={1} id="currently" title="Currently" glyph="clock" tone="ok" kicker={`as of ${profile.currently.asOf}`}>
         <ol className="timeline tone-ok not-prose">
           {profile.currently.items.map((c) => (
             <li key={c} className="text-[14px] leading-[1.6] text-primary">
@@ -369,26 +377,33 @@ export function AboutApp() {
             </li>
           ))}
         </ol>
-      </Section>
+      </Chapter>
 
-      <Section title="Interests">
+      <Chapter n={2} id="interests" title="Interests" glyph="spark" tone="violet">
         <div className="flex flex-wrap gap-1.5 not-prose">
           {profile.interests.map((i) => (
             <Chip key={i}>{i}</Chip>
           ))}
         </div>
-      </Section>
+      </Chapter>
 
-      <Section title="Process">
-        <div className="tile p-4 not-prose">
-          <p className="text-[15px] leading-[1.65] text-primary">{profile.process}</p>
-        </div>
-      </Section>
+      <Chapter n={3} id="process" title="Process" glyph="layers" tone="teal">
+        <figure className="tile p-4 flex gap-3 not-prose">
+          <Glyph name="quote" size={18} className="text-tertiary shrink-0 mt-0.5" />
+          <blockquote className="text-[15px] leading-[1.65] text-primary">{profile.process}</blockquote>
+        </figure>
+      </Chapter>
     </AppPage>
   )
 }
 
 /* ---------------------------------------------------------------- contact */
+
+const CHANNEL_BRAND: Record<string, BrandName | undefined> = {
+  github: 'github',
+  leetcode: 'leetcode',
+  linkedin: 'linkedin',
+}
 
 export function ContactApp() {
   const reachable = channels.filter((c) => c.href)
@@ -397,50 +412,74 @@ export function ContactApp() {
     <AppPage>
       <Orb tone="info" className="mb-5">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="field-label">COMMUNICATION CHANNEL</p>
-            <h1 className="text-[24px] @lg:text-[28px] leading-[1.15] tracking-[-0.02em] font-medium text-primary mt-2">
-              Get in touch
-            </h1>
+          <div className="flex items-start gap-3 min-w-0">
+            <span className="shrink-0 mt-0.5">
+              <AppIcon3D id="contact" size={46} />
+            </span>
+            <div className="min-w-0">
+              <p className="field-label">COMMUNICATION CHANNEL</p>
+              <h1 className="text-[24px] @lg:text-[28px] leading-[1.15] tracking-[-0.02em] font-medium text-primary mt-1">
+                Get in touch
+              </h1>
+            </div>
           </div>
           <Pill tone={reachable.length > 0 ? 'ok' : undefined}>
-            <span className="w-1.5 h-1.5 rounded-full bg-ok" aria-hidden="true" />
-            {reachable.length > 0 ? 'ready to receive' : 'no channel published yet'}
+            <span className="live-dot" aria-hidden="true" />
+            {reachable.length} of {channels.length} open
           </Pill>
         </div>
-        <div className="mt-4 max-w-sm">
-          <Track
-            value={channels.length ? reachable.length / channels.length : 0}
-            tone="info"
-            labels={[`${reachable.length} open`, `${channels.length - reachable.length} pending`]}
-          />
+
+        <div className="mt-4">
+          <ChannelTuner channels={channels} />
         </div>
       </Orb>
 
-      <h2 className="field-label section-title mb-2">Select channel</h2>
-      <ul className="grid gap-2">
-        {channels.map((c) => (
-          <li key={c.id} className="tile flex flex-wrap items-center gap-x-3 gap-y-2 px-3.5 py-3">
-            <Glyph name="contact" size={14} className="text-info shrink-0" />
-            <span className="text-[13px] text-secondary w-20 shrink-0">{c.label}</span>
-            {c.href && c.value ? (
-              <span className="flex items-center gap-2 min-w-0 flex-1">
-                <span className="min-w-0 truncate">
-                  <ExternalLink href={c.href}>{c.value}</ExternalLink>
-                </span>
-                {c.id === 'email' && <CopyButton value={c.value} />}
+      <h2 className="field-label section-title mb-2">All channels</h2>
+      <ul className="grid gap-2 @xl:grid-cols-2">
+        {channels.map((c) => {
+          const brand = CHANNEL_BRAND[c.id]
+          return (
+            <li key={c.id} className={`tile channel-row ${c.href ? '' : 'is-pending'}`}>
+              {brand ? <Badge brand={brand} tone={brand} size={34} /> : <Badge glyph="contact" tone="mail" size={34} />}
+              <span className="min-w-0 flex-1">
+                <span className="block text-[13px] text-secondary">{c.label}</span>
+                {c.href && c.value ? (
+                  <span className="flex items-center gap-2 min-w-0 mt-0.5">
+                    <span className="min-w-0 truncate text-[14px]">
+                      <ExternalLink href={c.href}>{c.value}</ExternalLink>
+                    </span>
+                    {c.id === 'email' && <CopyButton value={c.value} />}
+                  </span>
+                ) : (
+                  <span className="block mono text-[12px] text-tertiary mt-0.5">{c.pending}</span>
+                )}
               </span>
-            ) : (
-              <Empty>{c.pending}</Empty>
-            )}
-          </li>
-        ))}
+              {c.href ? (
+                <span className="pill pill-ok shrink-0">
+                  <Glyph name="signal" size={11} />
+                  open
+                </span>
+              ) : (
+                <span className="pill shrink-0 opacity-80">
+                  <Glyph name="lock" size={11} />
+                  pending
+                </span>
+              )}
+            </li>
+          )
+        })}
       </ul>
 
-      <p className="mono text-[12px] text-tertiary mt-5 term-col">
-        No contact form here yet. A form that silently fails is worse than no form,
-        so this ships when there is an endpoint behind it that actually delivers.
-      </p>
+      <div className="tile offline-note mt-5">
+        <Badge glyph="lock" tone="neutral" size={30} />
+        <div className="min-w-0">
+          <p className="text-[13.5px] text-primary">Contact form · offline</p>
+          <p className="mono text-[12px] text-tertiary mt-1 term-col">
+            No form here yet. A form that silently fails is worse than no form, so this ships
+            when there is an endpoint behind it that actually delivers.
+          </p>
+        </div>
+      </div>
     </AppPage>
   )
 }

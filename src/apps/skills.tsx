@@ -1,10 +1,12 @@
 import { skills, type Skill } from '~/data'
 import { failuresForSkill, projectsFor, skillsByCategory } from '@/lib/derived'
-import { Chip, Empty, Glyph, Section } from '@/components/ui'
+import { Chip, Empty, type GlyphName } from '@/components/ui'
 import {
   AppHeader,
   AppPage,
   ArrowDot,
+  Badge,
+  Chapter,
   Dash,
   DotNumber,
   Figure,
@@ -14,6 +16,7 @@ import {
   Orb,
   Pill,
   Stat,
+  type Tone,
 } from '@/components/ui/kit'
 
 /**
@@ -31,12 +34,22 @@ const CATEGORY_LABEL: Record<string, string> = {
   tooling: 'Tooling',
 }
 
+/** Each category gets its own mark and colour, so a long list sorts itself by eye. */
+const CATEGORY_MARK: Record<string, { glyph: GlyphName; tone: Tone }> = {
+  frontend: { glyph: 'code', tone: 'teal' },
+  backend: { glyph: 'layers', tone: 'info' },
+  language: { glyph: 'file', tone: 'violet' },
+  tooling: { glyph: 'wrench', tone: 'warn' },
+}
+const markFor = (category: string) => CATEGORY_MARK[category] ?? { glyph: 'skills' as GlyphName, tone: 'neutral' as Tone }
+
 export function SkillsApp() {
   const groups = skillsByCategory().filter((g) => g.modules.length > 0)
 
   return (
     <AppPage>
       <AppHeader
+        app="skills"
         path="INSTALLED_MODULES/"
         title="Skills"
         sub="Lamps count the projects a module appears in — usage, not mastery."
@@ -59,6 +72,7 @@ export function SkillsApp() {
                 {modules.map((s) => (
                   <li key={s.id}>
                     <a href={`/skills/${s.id}`} className="tile flex items-center gap-3 px-3.5 py-3 h-full">
+                      <Badge {...markFor(category)} size={30} />
                       <span className="min-w-0 flex-1">
                         <span className="block text-[14px] text-primary truncate">{s.name}</span>
                         <span className="block text-[12px] text-tertiary mt-0.5 truncate">
@@ -88,10 +102,15 @@ export function SkillDetail({ skill }: { skill: Skill }) {
     <AppPage>
       <article>
         <Orb tone="violet" className="mb-6">
-          <p className="field-label">Module · {CATEGORY_LABEL[skill.category] ?? skill.category}</p>
-          <h1 className="text-[26px] @lg:text-[30px] leading-[1.1] tracking-[-0.02em] font-medium text-primary mt-2">
-            {skill.name}
-          </h1>
+          <div className="flex items-start gap-3">
+            <Badge {...markFor(skill.category)} size={46} />
+            <div className="min-w-0">
+              <p className="field-label">Module · {CATEGORY_LABEL[skill.category] ?? skill.category}</p>
+              <h1 className="text-[26px] @lg:text-[30px] leading-[1.1] tracking-[-0.02em] font-medium text-primary mt-1">
+                {skill.name}
+              </h1>
+            </div>
+          </div>
           <div className="flex items-center gap-2.5 mt-3">
             <Lamps n={skill.frequency} />
             <span className="text-[12px] text-tertiary">usage frequency, not mastery</span>
@@ -115,7 +134,7 @@ export function SkillDetail({ skill }: { skill: Skill }) {
           ) : null}
         </Orb>
 
-        <Section title="Used in">
+        <Chapter n={1} id="used" title="Used in" glyph="projects" tone="ok" kicker={`${used.length} project${used.length === 1 ? '' : 's'}`}>
           {used.length === 0 ? (
             <Empty>Not yet used in a listed project.</Empty>
           ) : (
@@ -123,19 +142,20 @@ export function SkillDetail({ skill }: { skill: Skill }) {
               {used.map((p) => (
                 <li key={p.id}>
                   <a href={`/projects/${p.id}`} className="tile flex items-center gap-3 px-3.5 py-3">
-                    <Glyph name="projects" size={14} className="text-ok shrink-0" />
-                    <span className="text-[14px] text-primary">{p.name}</span>
-                    <span className="ml-auto">
-                      <ArrowDot size={26} glyph="chevron" />
+                    <Badge glyph="projects" tone="ok" size={28} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[14px] text-primary truncate">{p.name}</span>
+                      <span className="block text-[12px] text-tertiary truncate">{p.type}</span>
                     </span>
+                    <ArrowDot size={26} glyph="chevron" />
                   </a>
                 </li>
               ))}
             </ul>
           )}
-        </Section>
+        </Chapter>
 
-        <Section title="Broke it in">
+        <Chapter n={2} id="broke" title="Broke it in" glyph="warn" tone="error">
           {broke.length === 0 ? (
             <Empty>No crash report names this module yet.</Empty>
           ) : (
@@ -143,26 +163,24 @@ export function SkillDetail({ skill }: { skill: Skill }) {
               {broke.map((f) => (
                 <li key={f.id}>
                   <a href={`/failures/${f.id}`} className="tile flex items-center gap-3 px-3.5 py-3">
-                    <Glyph name="warn" size={14} className="text-error shrink-0" />
-                    <span className="text-[14px] text-primary">{f.title}</span>
-                    <span className="ml-auto">
-                      <ArrowDot size={26} glyph="chevron" />
-                    </span>
+                    <Badge glyph="warn" tone="error" size={28} />
+                    <span className="min-w-0 flex-1 text-[14px] text-primary">{f.title}</span>
+                    <ArrowDot size={26} glyph="chevron" />
                   </a>
                 </li>
               ))}
             </ul>
           )}
-        </Section>
+        </Chapter>
 
         {skill.adjacent.length > 0 && (
-          <Section title="Adjacent">
+          <Chapter n={3} id="adjacent" title="Adjacent" glyph="layers" tone="teal">
             <div className="flex flex-wrap gap-1.5 not-prose">
               {skill.adjacent.map((a) => (
                 <Chip key={a}>{a}</Chip>
               ))}
             </div>
-          </Section>
+          </Chapter>
         )}
       </article>
     </AppPage>
