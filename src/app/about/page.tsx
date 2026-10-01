@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { AboutApp } from '@/apps/misc'
 import { Desk } from '@/components/shell/Desk'
+import { profile } from '~/data'
 
 export const metadata: Metadata = {
   title: 'About',
-  description: 'User profile.',
+  description: `${profile.name} — ${profile.discipline} at ${profile.institution}. ${profile.role}.`,
 }
 
 export default function Page() {

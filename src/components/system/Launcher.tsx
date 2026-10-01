@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { bin, experiments, failures, projects, skills } from '~/data'
+import { bin, channels, experiments, failures, projects, skills } from '~/data'
 import { APP_ORDER, APP_PATH, APP_SUBTITLE, APP_TITLE, pathFor, refFor } from '@/os/routes'
 import { useSystem, useSystemApi } from '@/os/SystemProvider'
 import type { AppId } from '@/os/types'
@@ -66,6 +66,13 @@ const INDEX: Entry[] = [
     app: 'bin' as const,
     href: '/bin',
   })),
+  // The open channels go straight to the service — searching "email" should
+  // end at an address, not at a window that then has to be read.
+  ...channels.flatMap((c) =>
+    c.href && c.value
+      ? [{ id: `channel:${c.id}`, title: c.label, kind: `channel · ${c.value}`, app: 'contact' as const, href: c.href }]
+      : [],
+  ),
 ]
 
 export function Launcher() {
@@ -102,6 +109,12 @@ export function Launcher() {
   if (!open) return null
 
   const launch = (entry: Entry) => {
+    if (/^(https?:|mailto:)/.test(entry.href)) {
+      api.setOverlay(null)
+      if (entry.href.startsWith('mailto:')) window.location.href = entry.href
+      else window.open(entry.href, '_blank', 'noopener')
+      return
+    }
     const ref = refFor(entry.href)
     api.setOverlay(null)
     if (!ref) return

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { failures } from '~/data'
 import { CrashReport } from '@/apps/failures'
 import { Desk } from '@/components/shell/Desk'
+import { excerpt } from '@/lib/site'
 
 /* A fixed list, so every record is prerendered and anything else 404s rather
    than being rendered at request time. */
@@ -20,7 +21,7 @@ export async function generateMetadata({
   const { id } = await params
   const p = failures.find((x) => x.id === id)
   if (!p) return {}
-  return { title: p.title, description: p.whatHappened.slice(0, 160) }
+  return { title: p.title, description: excerpt(p.whatHappened) }
 }
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {

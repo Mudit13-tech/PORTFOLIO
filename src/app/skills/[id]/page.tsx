@@ -20,7 +20,7 @@ export async function generateMetadata({
   const { id } = await params
   const p = skills.find((x) => x.id === id)
   if (!p) return {}
-  return { title: p.name, description: `${p.name} — used in ${p.projectIds.length} projects, since ${p.firstUsed}.`.slice(0, 160) }
+  return { title: p.name, description: `${p.name} — used in ${p.projectIds.length} project${p.projectIds.length === 1 ? '' : 's'}, since ${p.firstUsed}.` }
 }
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {

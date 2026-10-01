@@ -36,7 +36,7 @@ import { SectionNav } from '@/components/system/SectionNav'
  * Unwritten fields (`TODO — …`) are the author's notes to himself. They show
  * as a marked draft while developing and are left out of production.
  */
-const SHOW_DRAFTS = process.env.NODE_ENV !== 'production'
+export const SHOW_DRAFTS = process.env.NODE_ENV !== 'production'
 
 const isDraft = (s: string | null | undefined): s is string => !!s && s.startsWith('TODO')
 const draftText = (s: string) => {
@@ -70,7 +70,7 @@ const toneOf = (p: Project): Tone => (p.status === 'shipped' ? 'ok' : p.status =
 
 type Written = { text: string } | { draft: string } | null
 
-function written(text: string | null): Written {
+export function written(text: string | null): Written {
   if (!text) return null
   if (isDraft(text)) return SHOW_DRAFTS ? { draft: draftText(text) } : null
   return { text }
@@ -352,7 +352,7 @@ function PagerCard({ project: p, dir }: { project: Project; dir: 'prev' | 'next'
 }
 
 /** An unwritten chapter. Visible only while developing. */
-function Draft({ children }: { children: React.ReactNode }) {
+export function Draft({ children }: { children: React.ReactNode }) {
   return (
     <div className="draft">
       <p className="draft-tag">

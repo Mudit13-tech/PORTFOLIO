@@ -21,13 +21,28 @@ export function StaticDocument() {
       </p>
       <p className="prose-col text-secondary mt-4">{meta.description}</p>
 
-      <p className="mono text-[13px] mt-4 flex gap-4">
+      <p className="mono text-[13px] mt-4 flex flex-wrap gap-x-4 gap-y-1">
+        {profile.links.email && (
+          <a href={`mailto:${profile.links.email}`} className="text-info underline">
+            {profile.links.email}
+          </a>
+        )}
+        {profile.links.linkedin && (
+          <a href={profile.links.linkedin} className="text-info underline">
+            LinkedIn
+          </a>
+        )}
         <a href={profile.links.github} className="text-info underline">
           GitHub
         </a>
         <a href={profile.links.leetcode} className="text-info underline">
           LeetCode
         </a>
+        {profile.links.resume && (
+          <a href={profile.links.resume} className="text-info underline">
+            Résumé
+          </a>
+        )}
       </p>
 
       <section className="mt-9">

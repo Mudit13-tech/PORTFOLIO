@@ -22,7 +22,7 @@ export const projects: Project[] = [
     role: 'solo',
     stack: ['react', 'vite', 'capacitor', 'swift', 'java', 'tailwind', 'vitest'],
     problem:
-      'An academic platform for NIT Jalandhar, delivered as a native app rather than a web page students have to remember to open. The README frames the hard part as distribution rather than features: getting fixes onto phones that are already installed, without a store review sitting between the fix and the student.',
+      'An academic platform for NIT Jalandhar, delivered as a native app rather than a web page students have to remember to open. The hard part was never the features, it was distribution: getting fixes onto phones that are already installed, without a store review sitting between the fix and the student.',
     architecture:
       'A React + Vite client wrapped by Capacitor into Android and iOS builds, so one codebase produces both. The interesting layer is over-the-air updates: a version bump publishes a new JavaScript bundle that installed apps pull on launch, so a fix ships in minutes instead of waiting on review. A GitHub Actions workflow syncs content from an upstream AMS server and resolves additive conflicts automatically instead of failing the run. Biometric auth is split per platform, because Face ID and Android biometrics did not want the same code.',
     contribution:
@@ -49,9 +49,9 @@ export const projects: Project[] = [
     role: 'solo',
     stack: ['typescript', 'react', 'python', 'django', 'rest'],
     problem:
-      'A trust and transaction layer for AI agents. Its README states the problem precisely: you give an agent a goal and a set of boundaries, and it searches, compares, decides, waits for the right price and pays — but only inside the limits you wrote. The unsolved part it targets is not the shopping, it is the guardrail around an agent that can spend money.',
+      'A trust and transaction layer for AI agents. You give an agent a goal and a set of boundaries, and it searches, compares, decides, waits for the right price and pays — but only inside the limits you wrote. The unsolved part it targets is not the shopping, it is the guardrail around an agent that can spend money.',
     architecture:
-      'The backend owns the loop and the frontend is described in the README as "its phone client". `backend/agent/engine.py` runs one stage per call through Understand, Search, Compare, Decide, Monitor, Prepare, Request approval, Execute, Verify. `backend/agent/models.py` holds offers, policies, runs and activity; `backend/agent/views.py` is the API. The client polls `POST /api/runs/<id>/advance/` while a task is live, so the loop on screen is the server\'s rather than a local imitation. Every payment passes `check_policy` first, with an auto-approve limit below which it pays without asking. There is no sign-in yet: each browser generates a device key sent as `X-ACTA-Device`, and JWT endpoints are wired but unused, with the user foreign keys already in place and nullable.',
+      'The backend owns the loop and the frontend is its phone client. `backend/agent/engine.py` runs one stage per call through Understand, Search, Compare, Decide, Monitor, Prepare, Request approval, Execute, Verify. `backend/agent/models.py` holds offers, policies, runs and activity; `backend/agent/views.py` is the API. The client polls `POST /api/runs/<id>/advance/` while a task is live, so the loop on screen is the server\'s rather than a local imitation. Every payment passes `check_policy` first, with an auto-approve limit below which it pays without asking. There is no sign-in yet: each browser generates a device key sent as `X-ACTA-Device`, and JWT endpoints are wired but unused, with the user foreign keys already in place and nullable.',
     contribution:
       'TODO — first person, specific. The policy engine and `check_policy`, the staged engine loop, the device-key scoping, the client polling design.',
     retrospective:
@@ -156,7 +156,7 @@ export const projects: Project[] = [
     problem:
       'A portfolio that behaves like a workstation instead of a page. Projects are applications, skills are installed modules, abandoned work sits in the bin, and the things that broke are filed as crash reports rather than hidden.',
     architecture:
-      'Next.js App Router. Every app is server-rendered at its own URL, so the whole system is readable with JavaScript disabled and crawlable by search engines; the window manager is a client layer that opens those same components in windows and rewrites the URL as it goes. Drag and resize are raw pointer events with no animation library, because the spec asks for exactly 1:1 dragging and a spring would break it. Every count on screen is derived from the length of a data array.',
+      'Next.js App Router. Every app is server-rendered at its own URL, so the whole system is readable with JavaScript disabled and crawlable by search engines; the window manager is a client layer that opens those same components in windows and rewrites the URL as it goes. Drag and resize are raw pointer events with no animation library, because a window has to follow the cursor exactly 1:1 and a spring would break that. Every count on screen is derived from the length of a data array.',
     contribution:
       'TODO — you are inside it. Say what you built, and be specific about the window manager.',
     retrospective: null,

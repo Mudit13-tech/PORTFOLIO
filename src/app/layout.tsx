@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { meta, profile } from '~/data'
 import { SystemProvider } from '@/os/SystemProvider'
+import { ORIGIN } from '@/lib/site'
 import './globals.css'
 import './lock.css'
 
@@ -14,16 +15,29 @@ import './lock.css'
 const sans = Geist({ subsets: ['latin'], display: 'swap', variable: '--font-geist' })
 const mono = Geist_Mono({ subsets: ['latin'], display: 'swap', variable: '--font-geist-mono' })
 
+/** What a search result or a link preview says before anyone opens the page. */
+const summary = `${profile.discipline} at ${profile.institution}. ${meta.description}`
+
 export const metadata: Metadata = {
-  metadataBase: new URL('http://localhost:3000'),
+  metadataBase: new URL(ORIGIN),
   title: { default: `${profile.name} — ${meta.systemName}`, template: `%s · ${meta.systemName}` },
-  description: meta.description,
+  description: summary,
   applicationName: meta.systemName,
-  authors: [{ name: profile.name, url: profile.links.github }],
+  authors: [{ name: profile.name, url: profile.links.linkedin ?? profile.links.github }],
+  creator: profile.name,
   openGraph: {
     title: `${profile.name} — ${meta.systemName}`,
-    description: meta.description,
+    description: summary,
     type: 'profile',
+    siteName: meta.systemName,
+    locale: 'en_IN',
+    firstName: profile.name.split(' ')[0],
+    lastName: profile.name.split(' ').slice(1).join(' '),
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${profile.name} — ${meta.systemName}`,
+    description: summary,
   },
   robots: { index: true, follow: true },
 }
@@ -71,8 +85,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     name: profile.name,
     jobTitle: profile.role,
     affiliation: { '@type': 'CollegeOrUniversity', name: profile.institution },
-    url: profile.links.github,
-    sameAs: [profile.links.github, profile.links.leetcode].filter(Boolean),
+    url: ORIGIN,
+    ...(profile.links.email ? { email: profile.links.email } : {}),
+    sameAs: [profile.links.linkedin, profile.links.github, profile.links.leetcode].filter(Boolean),
   }
 
   return (

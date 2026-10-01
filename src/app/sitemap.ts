@@ -1,8 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { experiments, failures, meta, projects, skills } from '~/data'
 import { APP_ORDER, APP_PATH } from '@/os/routes'
-
-const ORIGIN = 'http://localhost:3000'
+import { ORIGIN } from '@/lib/site'
 
 /** Every app and every record gets a crawlable, linkable URL. */
 export default function sitemap(): MetadataRoute.Sitemap {

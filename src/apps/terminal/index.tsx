@@ -79,7 +79,11 @@ export function TerminalApp() {
         const cmd = raw.trim().split(/\s+/)[0]
         if (cmd === 'github') window.open(profile.links.github, '_blank', 'noopener')
         if (cmd === 'leetcode') window.open(profile.links.leetcode, '_blank', 'noopener')
-        if (cmd === 'resume' && profile.links.resume) window.open(profile.links.resume, '_blank', 'noopener')
+        if (cmd === 'linkedin' && profile.links.linkedin) window.open(profile.links.linkedin, '_blank', 'noopener')
+        if (cmd === 'resume') {
+          const cv = profile.links.resume ?? profile.links.linkedin
+          if (cv) window.open(cv, '_blank', 'noopener')
+        }
 
         if (result.open) {
           api.open(result.open.id, result.open.payload)

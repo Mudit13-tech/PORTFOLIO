@@ -149,6 +149,7 @@ export function ChannelTuner({ channels }: { channels: TunerChannel[] }) {
 
   const c = channels[sel]
   const open = !!c.href
+  const mail = !!c.href?.startsWith('mailto:')
   const brand = BRAND[c.id]
 
   const copy = async () => {
@@ -240,16 +241,17 @@ export function ChannelTuner({ channels }: { channels: TunerChannel[] }) {
       <div className="flex flex-wrap items-center gap-2 mt-4">
         {open ? (
           <>
+            {/* An address opens the visitor's own mail app in place; a
+                profile opens in a new tab. */}
             <a
               href={c.href!}
-              target="_blank"
-              rel="noreferrer noopener"
+              {...(mail ? {} : { target: '_blank', rel: 'noreferrer noopener' })}
               data-native="true"
               data-sfx="open"
               className="btn btn-solid"
             >
-              Open {c.label}
-              <Glyph name="external" size={13} className="btn-icon" />
+              {mail ? 'Write an email' : `Open ${c.label}`}
+              <Glyph name={mail ? 'arrow' : 'external'} size={13} className="btn-icon" />
             </a>
             <button type="button" onClick={copy} data-sfx="off" className="btn btn-quiet">
               <Glyph name={copied ? 'check' : 'copy'} size={13} />

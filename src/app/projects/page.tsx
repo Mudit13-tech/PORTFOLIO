@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { ProjectsApp } from '@/apps/projects'
 import { Desk } from '@/components/shell/Desk'
+import { counts } from '@/lib/derived'
 
 export const metadata: Metadata = {
   title: 'Projects',
-  description: 'Six real repositories, with the crash reports each one produced.',
+  description: `${counts.projects} real repositories, with the crash reports each one produced.`,
 }
 
 export default function Page() {

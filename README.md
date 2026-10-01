@@ -35,6 +35,10 @@ JavaScript disabled, and a crawler that does not execute it, both get the whole
 portfolio as readable HTML, and neither state flashes, because the parser makes
 both decisions before the first frame.
 
+**A shared link arrives as a card.** `src/app/opengraph-image.tsx` draws the
+preview LinkedIn, chat apps and mail clients show — the name, the role and the
+same derived counts as the desk, in the desk's own light — once, at build time.
+
 **Nothing is read from `localStorage` during a render.** The saved desk is
 applied from an effect after mount. Reading it while rendering made the first
 client render disagree with the server's; React threw the tree away and rebuilt
@@ -159,14 +163,20 @@ The system is complete; some of the content is still yours to write.
    as honest empty states until you write them. These are the two fields that
    separate this from every other portfolio — "what I built", specifically, and
    "what I'd do differently".
-3. **Contact is unpublished.** `data/profile.ts` has `email`, `linkedin` and
-   `resume` set to `null`, which render as designed empty states rather than dead
-   links. Drop a PDF in `/public`, set `resume: '/your-file.pdf'`, and the top-bar
-   Résumé link goes live.
+3. **The résumé is the last unpublished link.** Email and LinkedIn are live in
+   `data/profile.ts`; `resume` is still `null`, so the top bar, the terminal's
+   `resume` and the About card hand over LinkedIn instead. Drop a PDF in
+   `/public`, set `resume: '/your-file.pdf'`, and every one of them switches to it.
 4. **`currently` is dated.** Review it quarterly — the date renders next to it,
    so a stale entry is visible rather than silent.
-5. **`metadataBase`** in `src/app/layout.tsx` and the origin in `sitemap.ts` /
-   `robots.ts` point at localhost. Change them when you pick a domain.
+5. **The origin comes from the environment.** `src/lib/site.ts` reads
+   `NEXT_PUBLIC_SITE_URL`, or Vercel's production domain on its own, and falls
+   back to localhost. The metadata base, the sitemap, robots and the share card
+   all use it — set the variable once you pick a domain.
+
+Unwritten fields — a `TODO` in a project or an experiment, a missing location or
+résumé — show as marked drafts in `npm run dev` and are left out of the
+production build, so the site a visitor sees never shows a note to yourself.
 
 ## Keyboard
 
@@ -179,4 +189,5 @@ Right-click the desk for the same actions with a pointer. Arrow keys move
 between desktop icons, and through the heatmap once it has focus.
 
 The terminal has tab completion, history, and `ls`/`cd`/`cat` over the real
-content tree. `cat failures/ota-dev-bundle` prints the crash report.
+content tree. `cat failures/ota-dev-bundle` prints the crash report; `email`,
+`linkedin`, `github` and `contact` are the ways out.

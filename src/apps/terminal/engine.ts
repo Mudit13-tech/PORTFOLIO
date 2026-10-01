@@ -52,6 +52,8 @@ export const COMMANDS = [
   'stats',
   'theme',
   'clear',
+  'email',
+  'linkedin',
   'github',
   'leetcode',
   'resume',
@@ -63,7 +65,7 @@ const HELP = `NAVIGATION    projects, failures, skills, experiments,
               about, contact, bin, monitor
 FILES         ls, cd <dir>, cat <file>, open <app>
 SYSTEM        whoami, uptime, stats, theme <dark|light>, clear
-LINKS         github, leetcode, resume
+LINKS         email, linkedin, github, leetcode, resume
 
 Tab completes. ↑ ↓ for history. Try: sudo hire-mudit`
 
@@ -151,6 +153,7 @@ export function run(input: string, cwd: string): Result & { cwd: string } {
           profile.name,
           `${profile.discipline}, ${profile.institution}`,
           profile.role,
+          ...(profile.links.email ? [profile.links.email] : []),
         ),
         cwd,
       }
@@ -176,6 +179,16 @@ export function run(input: string, cwd: string): Result & { cwd: string } {
       return { lines: out(`theme → ${t}`), theme: t, cwd }
     }
 
+    case 'email':
+      return profile.links.email
+        ? { lines: [...out(profile.links.email), { kind: 'note', text: 'type contact for every channel' }], cwd }
+        : { lines: [{ kind: 'note', text: 'email: not published yet' }], cwd }
+
+    case 'linkedin':
+      return profile.links.linkedin
+        ? { lines: out(`opening ${profile.links.linkedin}`), cwd }
+        : { lines: [{ kind: 'note', text: 'linkedin: not published yet' }], cwd }
+
     case 'github':
       return { lines: out(`opening ${profile.links.github}`), cwd }
 
@@ -183,12 +196,16 @@ export function run(input: string, cwd: string): Result & { cwd: string } {
       return { lines: out(`opening ${profile.links.leetcode}`), cwd }
 
     case 'resume':
-      return profile.links.resume
-        ? { lines: out(`opening ${profile.links.resume}`), cwd }
-        : {
-            lines: [{ kind: 'note', text: 'resume: no PDF published yet — see the About window' }],
+      if (profile.links.resume) return { lines: out(`opening ${profile.links.resume}`), cwd }
+      return profile.links.linkedin
+        ? {
+            lines: [
+              { kind: 'note', text: 'resume: no PDF published yet — LinkedIn has the same history' },
+              ...out(`opening ${profile.links.linkedin}`),
+            ],
             cwd,
           }
+        : { lines: [{ kind: 'note', text: 'resume: no PDF published yet — see the About window' }], cwd }
 
     case 'open': {
       const target = APP_ORDER.find((a) => a === arg)

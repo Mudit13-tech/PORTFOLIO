@@ -157,12 +157,21 @@ export function ArrowDot({ size = 34, glyph = 'external' }: { size?: number; gly
   )
 }
 
-/** A round link button — Source, Live, GitHub. */
+/**
+ * A round link button — Source, Live, GitHub. An address opens the visitor's
+ * own mail app in place, so it gets an envelope rather than the new-tab arrow.
+ */
 export function RoundLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const mail = href.startsWith('mailto:')
   return (
-    <a href={href} target="_blank" rel="noreferrer noopener" data-native="true" className="round-link">
+    <a
+      href={href}
+      {...(mail ? {} : { target: '_blank', rel: 'noreferrer noopener' })}
+      data-native="true"
+      className="round-link"
+    >
       {children}
-      <Glyph name="external" size={12} />
+      <Glyph name={mail ? 'contact' : 'external'} size={12} />
     </a>
   )
 }

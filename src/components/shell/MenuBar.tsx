@@ -15,7 +15,8 @@ import { Glyph } from '@/components/ui'
  * The menu bar.
  *
  * It carries three jobs, in this order of importance: the escape hatch
- * (Résumé and GitHub, always visible, never covered by a window), the name of
+ * (Résumé — or LinkedIn until there is one — and GitHub, always visible,
+ * never covered by a window), the name of
  * whatever has focus, and the menus. A recruiter with ninety seconds must never
  * have to be clever to leave with the thing they came for, so the two links sit
  * in the chrome at the top right and no overlay in this system is allowed above
@@ -219,7 +220,13 @@ function Item({
 
   if (href) {
     return (
-      <a data-item href={href} className={className} target="_blank" rel="noreferrer" data-native="true">
+      <a
+        data-item
+        href={href}
+        className={className}
+        {...(href.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noreferrer' })}
+        data-native="true"
+      >
         {body}
       </a>
     )
@@ -350,7 +357,21 @@ function HelpItems() {
         Open terminal — type <span className="text-ok">help</span>
       </Item>
       <MenuRule />
+      {profile.links.email && (
+        <Item href={`mailto:${profile.links.email}`}>
+          <Glyph name="contact" size={13} className="text-tertiary" />
+          Email {profile.name.split(' ')[0]}
+        </Item>
+      )}
+      {profile.links.linkedin && (
+        <Item href={profile.links.linkedin}>
+          <Glyph name="about" size={13} className="text-tertiary" />
+          LinkedIn
+          <Glyph name="external" size={11} className="text-tertiary" />
+        </Item>
+      )}
       <Item href={profile.links.github}>
+        <Glyph name="code" size={13} className="text-tertiary" />
         Source on GitHub
         <Glyph name="external" size={11} className="text-tertiary" />
       </Item>
@@ -516,8 +537,14 @@ function Clock() {
   )
 }
 
+/**
+ * The first escape hatch. A résumé when there is one; until then the profile
+ * that does the same job, because a grey "Résumé" that leads to a note saying
+ * there is no résumé is a dead end in the one place that must never be one.
+ */
 function ResumeLink() {
-  if (!profile.links.resume) {
+  const href = profile.links.resume ?? profile.links.linkedin
+  if (!href) {
     return (
       <a
         href={APP_PATH.about}
@@ -530,13 +557,13 @@ function ResumeLink() {
   }
   return (
     <a
-      href={profile.links.resume}
+      href={href}
       target="_blank"
       rel="noreferrer"
       data-native="true"
       className="mono text-[12px] text-primary hover:text-ok px-1.5 py-0.5 rounded-sm"
     >
-      Résumé
+      {profile.links.resume ? 'Résumé' : 'LinkedIn'}
     </a>
   )
 }

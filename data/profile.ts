@@ -39,10 +39,10 @@ export const profile: Profile = {
     github: 'https://github.com/Mudit13-tech',
     leetcode: 'https://leetcode.com/u/Mudit1306/',
     // TODO — drop a PDF in /public and set this to '/mudit-golchha.pdf'.
+    // Until then, the places that would offer it hand over LinkedIn instead.
     resume: null,
-    // TODO — the address you want a recruiter to actually use.
-    email: null,
-    linkedin: null,
+    email: 'muditg13.work@gmail.com',
+    linkedin: 'https://www.linkedin.com/in/mudit-golchha-0555a5286/',
   },
 }
 
@@ -71,7 +71,7 @@ export const channels: ContactChannel[] = [
   {
     id: 'linkedin',
     label: 'LinkedIn',
-    value: profile.links.linkedin,
+    value: profile.links.linkedin ? profile.name : null,
     href: profile.links.linkedin,
     pending: 'not published yet',
   },

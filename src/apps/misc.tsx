@@ -8,7 +8,7 @@ import {
 } from '~/data'
 import { counts, readingCeiling, readings, stability, system } from '@/lib/derived'
 import { activityStats, channelList } from '@/lib/activity'
-import { AppIcon3D, Chip, Empty, ExternalLink, Field, Glyph, Meter, type BrandName } from '@/components/ui'
+import { AppIcon3D, Chip, Empty, ExternalLink, Field, Glyph, Meter, type BrandName, type GlyphName } from '@/components/ui'
 import {
   AppHeader,
   AppPage,
@@ -22,7 +22,9 @@ import {
   Pill,
   RoundLink,
   Stat,
+  type Tone,
 } from '@/components/ui/kit'
+import { Draft, SHOW_DRAFTS, written } from '@/apps/project-detail'
 import { ActivityTable, Heatmap } from '@/components/system/Heatmap'
 import { RestoreAll } from '@/components/system/RestoreAll'
 import { CopyButton } from '@/components/system/CopyButton'
@@ -77,7 +79,26 @@ export function ExperimentsApp() {
 }
 
 export function ExperimentDetail({ experiment }: { experiment: Experiment }) {
-  const todo = (s: string) => s.startsWith('TODO')
+  // Unwritten fields are the author's notes to himself, handled exactly as a
+  // project's are: a marked draft while developing, left out of production,
+  // and the chapters that remain are numbered without a gap.
+  const result = written(experiment.result)
+  const learned = written(experiment.learned)
+  const chapters: {
+    id: string
+    title: string
+    glyph: GlyphName
+    tone: Tone
+    body: NonNullable<ReturnType<typeof written>>
+    lead: boolean
+  }[] = [
+    { id: 'why', title: 'Why', glyph: 'target', tone: 'info', body: { text: experiment.why }, lead: true },
+    ...(result ? [{ id: 'result', title: 'Result', glyph: 'flag', tone: 'warn', body: result, lead: false } as const] : []),
+    ...(learned
+      ? [{ id: 'learned', title: 'Learned', glyph: 'spark', tone: 'violet', body: learned, lead: false } as const]
+      : []),
+  ]
+
   return (
     <AppPage>
       <article>
@@ -102,19 +123,15 @@ export function ExperimentDetail({ experiment }: { experiment: Experiment }) {
           )}
         </Orb>
 
-        <Chapter n={1} id="why" title="Why" glyph="target" tone="info">
-          <p className="lead">{experiment.why}</p>
-        </Chapter>
-        <Chapter n={2} id="result" title="Result" glyph="flag" tone="warn">
-          {todo(experiment.result) ? (
-            <Empty>{experiment.result.replace(/^TODO — /, '')}</Empty>
-          ) : (
-            <p className="prose-col">{experiment.result}</p>
-          )}
-        </Chapter>
-        <Chapter n={3} id="learned" title="Learned" glyph="spark" tone="violet">
-          {todo(experiment.learned) ? <Empty>not written up yet</Empty> : <p className="prose-col">{experiment.learned}</p>}
-        </Chapter>
+        {chapters.map((c, i) => (
+          <Chapter key={c.id} n={i + 1} id={c.id} title={c.title} glyph={c.glyph} tone={c.tone}>
+            {'draft' in c.body ? (
+              <Draft>{c.body.draft}</Draft>
+            ) : (
+              <p className={c.lead ? 'lead' : 'prose-col'}>{c.body.text}</p>
+            )}
+          </Chapter>
+        ))}
       </article>
     </AppPage>
   )
@@ -345,7 +362,11 @@ export function AboutApp() {
               building
             </Pill>
           )}
-          {profile.location ? <Pill>{profile.location}</Pill> : <Empty>location not published</Empty>}
+          {profile.location ? (
+            <Pill>{profile.location}</Pill>
+          ) : (
+            SHOW_DRAFTS && <Empty>location not published</Empty>
+          )}
         </div>
 
         <Inset className="mt-5 flex items-end gap-3">
@@ -358,14 +379,16 @@ export function AboutApp() {
           </Stat>
         </Inset>
 
+        {/* The ways to leave with something, most direct first. A missing
+            résumé is a note to the author while developing, never a dead
+            chip in front of a recruiter. */}
         <div className="flex flex-wrap gap-2 mt-4">
+          {profile.links.resume && <RoundLink href={profile.links.resume}>Résumé</RoundLink>}
+          {profile.links.email && <RoundLink href={`mailto:${profile.links.email}`}>Email</RoundLink>}
+          {profile.links.linkedin && <RoundLink href={profile.links.linkedin}>LinkedIn</RoundLink>}
           <RoundLink href={profile.links.github}>GitHub</RoundLink>
           <RoundLink href={profile.links.leetcode}>LeetCode</RoundLink>
-          {profile.links.resume ? (
-            <RoundLink href={profile.links.resume}>Résumé</RoundLink>
-          ) : (
-            <Empty>Résumé not uploaded yet</Empty>
-          )}
+          {!profile.links.resume && SHOW_DRAFTS && <Empty>Résumé not uploaded yet</Empty>}
         </div>
       </Orb>
 
@@ -446,7 +469,17 @@ export function ContactApp() {
                 {c.href && c.value ? (
                   <span className="flex items-center gap-2 min-w-0 mt-0.5">
                     <span className="min-w-0 truncate text-[14px]">
-                      <ExternalLink href={c.href}>{c.value}</ExternalLink>
+                      {c.href.startsWith('mailto:') ? (
+                        <a
+                          href={c.href}
+                          data-native="true"
+                          className="text-info hover:text-primary underline underline-offset-2 decoration-subtle"
+                        >
+                          {c.value}
+                        </a>
+                      ) : (
+                        <ExternalLink href={c.href}>{c.value}</ExternalLink>
+                      )}
                     </span>
                     {c.id === 'email' && <CopyButton value={c.value} />}
                   </span>
@@ -455,7 +488,7 @@ export function ContactApp() {
                 )}
               </span>
               {c.href ? (
-                <span className="pill pill-ok shrink-0">
+                <span className="pill pill-ok shrink-0 channel-open">
                   <Glyph name="signal" size={11} />
                   open
                 </span>
@@ -470,16 +503,65 @@ export function ContactApp() {
         })}
       </ul>
 
-      <div className="tile offline-note mt-5">
-        <Badge glyph="lock" tone="neutral" size={30} />
+      {profile.links.email ? (
+        <Compose email={profile.links.email} />
+      ) : (
+        <div className="tile offline-note mt-5">
+          <Badge glyph="lock" tone="neutral" size={30} />
+          <div className="min-w-0">
+            <p className="text-[13.5px] text-primary">Contact form · offline</p>
+            <p className="mono text-[12px] text-tertiary mt-1 term-col">
+              No form here yet. A form that silently fails is worse than no form, so this ships
+              when there is an endpoint behind it that actually delivers.
+            </p>
+          </div>
+        </div>
+      )}
+    </AppPage>
+  )
+}
+
+/**
+ * Still not a form — a form needs an endpoint, and one that silently drops a
+ * message is worse than none. These are addressed, titled emails that open in
+ * the visitor's own mail app, which is a delivery path that already works.
+ * Plain mailto links, so they work with scripting off too.
+ */
+const SUBJECTS = [
+  { label: 'An internship or role', subject: 'Internship / role' },
+  { label: 'Working on a project together', subject: 'Project collaboration' },
+  { label: 'Feedback on something here', subject: `Feedback on ${meta.systemName}` },
+  { label: 'Just saying hello', subject: 'Hello' },
+]
+
+function Compose({ email }: { email: string }) {
+  const first = profile.name.split(' ')[0]
+  const mailto = (subject: string) =>
+    `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`Hi ${first},\n\n`)}`
+
+  return (
+    <section className="tile compose mt-5" aria-labelledby="compose-title">
+      <div className="flex items-start gap-3">
+        <Badge glyph="contact" tone="mail" size={30} />
         <div className="min-w-0">
-          <p className="text-[13.5px] text-primary">Contact form · offline</p>
-          <p className="mono text-[12px] text-tertiary mt-1 term-col">
-            No form here yet. A form that silently fails is worse than no form, so this ships
-            when there is an endpoint behind it that actually delivers.
+          <h2 id="compose-title" className="text-[13.5px] text-primary">
+            Start an email
+          </h2>
+          <p className="text-[12.5px] text-tertiary mt-0.5">
+            Pick what it is about. It opens in your own mail app, addressed and titled.
           </p>
         </div>
       </div>
-    </AppPage>
+      <ul className="compose-list">
+        {SUBJECTS.map((s) => (
+          <li key={s.subject}>
+            <a href={mailto(s.subject)} data-native="true" data-sfx="open" className="round-link">
+              {s.label}
+              <Glyph name="arrow" size={12} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
