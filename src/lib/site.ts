@@ -13,8 +13,8 @@ export const ORIGIN = (
 ).replace(/\/+$/, '')
 
 /**
- * A search-result-length summary: whole sentences while they fit, otherwise
- * whole words and an ellipsis. Never a word cut in half.
+ * A search-result-length summary: whole sentences while they fill most of the
+ * room, otherwise whole words and an ellipsis. Never a word cut in half.
  */
 export function excerpt(text: string, max = 160): string {
   const t = text.replace(/\s+/g, ' ').trim()
@@ -25,7 +25,7 @@ export function excerpt(text: string, max = 160): string {
     if ((out ? out.length + 1 : 0) + s.length > max) break
     out = out ? `${out} ${s}` : s
   }
-  if (out) return out
+  if (out.length >= max * 0.6) return out
   const cut = t.slice(0, max - 1)
   return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[,;:—–-]+$/, '')}…`
 }
