@@ -40,14 +40,13 @@ export function Shell({
 
   useShortcuts(booted)
 
-  // A deep link opens straight into its window, with boot skipped. The window
-  // shows the server-rendered HTML this page already delivered.
+  // A deep link opens its window straight away, underneath the lock screen,
+  // so unlocking lands exactly where the link pointed. The window shows the
+  // server-rendered HTML this page already delivered. `booted` is left to the
+  // lock screen: it means "past the door", and the shortcuts wait for it.
   useEffect(() => {
     const ref = refFor(entry)
-    if (ref) {
-      api.setBooted(true)
-      api.open(ref.id, ref.payload)
-    }
+    if (ref) api.open(ref.id, ref.payload)
   }, [api, entry])
 
   // Back and forward move between windows rather than reloading the system.

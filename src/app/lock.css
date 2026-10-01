@@ -36,12 +36,6 @@
   --lk-shadow: 0 1px 2px rgb(60 50 35 / 0.1), 0 12px 32px -14px rgb(60 50 35 / 0.3);
 }
 
-/* Already unlocked this session: hidden before the first frame, by the
-   pre-paint script, so a reload never flashes the door. */
-:root[data-unlocked] .lock {
-  display: none;
-}
-
 .lock-scroller {
   position: absolute;
   inset: 0;

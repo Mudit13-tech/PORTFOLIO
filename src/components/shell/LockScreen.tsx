@@ -5,10 +5,9 @@ import { buildVersion, channels, meta, profile } from '~/data'
 import { bootLines, stability } from '@/lib/derived'
 import type { LockHandle } from '@/lib/lockscreen'
 import { sfx } from '@/lib/sfx'
-import { STORAGE_KEY } from '@/os/constants'
 import { APP_LABEL, APP_PATH } from '@/os/routes'
 import { useSound } from '@/os/sound'
-import { useSystem, useSystemApi } from '@/os/SystemProvider'
+import { useSystemApi } from '@/os/SystemProvider'
 import { useTheme } from '@/os/theme'
 import { AppIcon, Glyph } from '@/components/ui'
 
@@ -25,36 +24,22 @@ import { AppIcon, Glyph } from '@/components/ui'
  * one snap point on it and one past it, so the browser's own scrolling does
  * the work: a wheel notch, a trackpad flick, a thumb swipe, Space or Page Down
  * all unlock it, momentum and rubber-banding are native, and a scroll that
- * stops halfway snaps back. Enter unlocks too; Escape unlocks and opens the
- * projects, which is what Skip used to do.
+ * stops halfway snaps back. Enter unlocks too; Escape unlocks and, if nothing
+ * is open underneath, opens the projects — which is what Skip used to do.
  *
- * Shown on the root URL once per browser session. A deep link never sees it,
- * `?lock=1` always does, and the pre-paint script in the layout hides it
- * before the first frame for a visitor who has already been in this session.
+ * It is the default state of the page: every full load shows it, on every
+ * route, because it is rendered into the server's HTML and nothing remembers
+ * having been past it. A deep link is not lost — its window is opened
+ * underneath while the door is shut, so unlocking lands exactly where the
+ * link pointed. Moving around inside the system never reloads the page, so it
+ * never locks a visitor out mid-visit. Until it is unlocked the system is not
+ * `booted`, which is what keeps the global shortcuts off behind it.
  */
-const SESSION_KEY = `${STORAGE_KEY}.unlocked`
-
-const seenThisSession = () => {
-  try {
-    return window.sessionStorage.getItem(SESSION_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-const remember = () => {
-  try {
-    window.sessionStorage.setItem(SESSION_KEY, '1')
-  } catch {
-    /* private mode — the lock screen will simply show again next load */
-  }
-}
-const forced = () => /[?&](lock|boot)=1(&|$)/.test(window.location.search)
 const still = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-export function LockScreen({ entry }: { entry: string }) {
+export function LockScreen() {
   const api = useSystemApi()
-  const booted = useSystem((s) => s.booted)
-  const [gone, setGone] = useState(entry !== '/')
+  const [gone, setGone] = useState(false)
   const [glass, setGlass] = useState(false)
   const [notes, setNotes] = useState(false)
   const [now, setNow] = useState<Date | null>(null)
@@ -72,26 +57,18 @@ export function LockScreen({ entry }: { entry: string }) {
   const { theme, toggle: toggleTheme } = useTheme()
   const { soundOn, toggle: toggleSound } = useSound()
 
-  const showing = !gone && !booted
-
-  // Decide, once, whether this visit gets the lock screen at all.
-  useEffect(() => {
-    if (entry !== '/') return
-    if (seenThisSession() && !forced()) {
-      setGone(true)
-      api.setBooted(true)
-    }
-  }, [api, entry])
+  const showing = !gone
 
   const finish = useCallback(() => {
     if (done.current) return
     done.current = true
-    remember()
     document.documentElement.removeAttribute('data-locked')
     document.documentElement.style.removeProperty('--lock-p')
     setGone(true)
     api.setBooted(true)
-    if (thenProjects.current) {
+    // Escape is "take me to the work": the projects, unless a deep link has
+    // already put something on the desk under the lock.
+    if (thenProjects.current && api.getState().windows.length === 0) {
       api.open('projects')
       window.history.pushState(null, '', APP_PATH.projects)
     }
@@ -189,8 +166,8 @@ export function LockScreen({ entry }: { entry: string }) {
     }
   }, [showing, unlock])
 
-  // The surface. Imported on demand, like the desk's, so it is never in the
-  // first bundle for a deep link that will not show it.
+  // The surface. Imported on demand, like the desk's, so the shader source is
+  // not in the first bundle and the door paints before it has compiled.
   useEffect(() => {
     if (!showing) return
     const c = canvas.current

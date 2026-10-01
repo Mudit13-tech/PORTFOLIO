@@ -14,7 +14,7 @@ import { Shell } from './Shell'
 export function Desk({ entry, children }: { entry: string; children: React.ReactNode }) {
   return (
     <>
-      <LockScreen entry={entry} />
+      <LockScreen />
       <Shell entry={entry} serverContent={children} />
     </>
   )

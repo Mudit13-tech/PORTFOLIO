@@ -80,9 +80,11 @@ derived counts, and the status bar is honest too: the signal bars are the open
 contact channels, the battery is stability. It is a real scroll container with
 one snap point past the lock, so a wheel notch, a trackpad flick, a swipe, Space
 or Enter all open it, and the desk comes forward underneath exactly as far as it
-has been scrolled; Esc opens straight into the projects. Once per browser
-session, never on a deep link, always with `?lock=1` — and hidden by the pre-paint
-script for anyone who has already been in, so a reload never flashes it.
+has been scrolled; Esc opens straight into the projects. It is the default state
+of the page: every full load opens on it, on every route. A deep link is not lost —
+its window is opened underneath while the door is shut, so unlocking lands exactly
+where the link pointed — and moving around inside the system never reloads the
+page, so it never locks anyone out mid-visit.
 
 **The inside of every application answers back.** Each row carries a badge — a
 glyph on a tile of its own colour, or the service's own mark on the contact
